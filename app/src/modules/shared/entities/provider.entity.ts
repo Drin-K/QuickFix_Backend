@@ -55,7 +55,13 @@ export class Provider {
   @Column({ name: 'is_verified', type: 'boolean', default: false })
   isVerified!: boolean;
 
-  @Column({ name: 'average_rating', type: 'decimal', precision: 3, scale: 2, nullable: true })
+  @Column({
+    name: 'average_rating',
+    type: 'decimal',
+    precision: 3,
+    scale: 2,
+    nullable: true,
+  })
   averageRating!: string | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
@@ -64,7 +70,9 @@ export class Provider {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt!: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.providers, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.providers, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
@@ -72,7 +80,10 @@ export class Provider {
   @JoinColumn({ name: 'owner_user_id' })
   ownerUser!: User;
 
-  @ManyToOne(() => City, (city) => city.providers, { nullable: true, onDelete: 'SET NULL' })
+  @ManyToOne(() => City, (city) => city.providers, {
+    nullable: true,
+    onDelete: 'SET NULL',
+  })
   @JoinColumn({ name: 'city_id' })
   city!: City | null;
 
@@ -88,7 +99,10 @@ export class Provider {
   @OneToMany(() => Service, (service) => service.provider)
   services!: Service[];
 
-  @OneToMany(() => AvailabilitySlot, (availabilitySlot) => availabilitySlot.provider)
+  @OneToMany(
+    () => AvailabilitySlot,
+    (availabilitySlot) => availabilitySlot.provider,
+  )
   availabilitySlots!: AvailabilitySlot[];
 
   @OneToMany(() => Booking, (booking) => booking.provider)

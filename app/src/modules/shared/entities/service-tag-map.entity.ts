@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { Service } from './service.entity';
 import { ServiceTag } from './service-tag.entity';
 import { Tenant } from './tenant.entity';
@@ -19,18 +26,24 @@ export class ServiceTagMap {
   @Column({ name: 'tag_id', type: 'int' })
   tagId!: number;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.serviceTagMaps, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.serviceTagMaps, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @ManyToOne(() => Service, (service) => service.serviceTagMaps, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.serviceTagMaps, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'service_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },
   ])
   service!: Service;
 
-  @ManyToOne(() => ServiceTag, (tag) => tag.serviceTagMaps, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => ServiceTag, (tag) => tag.serviceTagMaps, {
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'tag_id' })
   tag!: ServiceTag;
 }

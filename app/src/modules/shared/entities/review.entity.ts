@@ -1,4 +1,14 @@
-import { Check, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Check,
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { Booking } from './booking.entity';
 import { Provider } from './provider.entity';
 import { Tenant } from './tenant.entity';
@@ -47,7 +57,9 @@ export class Review {
   @JoinColumn({ name: 'client_user_id' })
   clientUser!: User;
 
-  @ManyToOne(() => Provider, (provider) => provider.reviews, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Provider, (provider) => provider.reviews, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },

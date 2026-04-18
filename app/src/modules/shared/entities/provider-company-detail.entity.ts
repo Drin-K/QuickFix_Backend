@@ -27,7 +27,12 @@ export class ProviderCompanyDetail {
   @Column({ name: 'business_name', type: 'varchar', length: 255 })
   businessName!: string;
 
-  @Column({ name: 'business_number', type: 'varchar', length: 100, nullable: true })
+  @Column({
+    name: 'business_number',
+    type: 'varchar',
+    length: 100,
+    nullable: true,
+  })
   businessNumber!: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
@@ -39,11 +44,15 @@ export class ProviderCompanyDetail {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt!: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.providerCompanyDetails, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.providerCompanyDetails, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @OneToOne(() => Provider, (provider) => provider.companyDetails, { onDelete: 'CASCADE' })
+  @OneToOne(() => Provider, (provider) => provider.companyDetails, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },

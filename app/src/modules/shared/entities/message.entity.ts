@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { Conversation } from './conversation.entity';
 import { MessageType } from './message-type.entity';
 import { Tenant } from './tenant.entity';
@@ -32,7 +40,9 @@ export class Message {
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @ManyToOne(() => Conversation, (conversation) => conversation.messages, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'conversation_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },
@@ -43,7 +53,9 @@ export class Message {
   @JoinColumn({ name: 'sender_user_id' })
   senderUser!: User;
 
-  @ManyToOne(() => MessageType, (messageType) => messageType.messages, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => MessageType, (messageType) => messageType.messages, {
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'message_type_id' })
   messageType!: MessageType;
 }

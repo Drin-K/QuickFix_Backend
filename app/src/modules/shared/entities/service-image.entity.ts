@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { Service } from './service.entity';
 import { Tenant } from './tenant.entity';
 
@@ -20,11 +27,15 @@ export class ServiceImage {
   @Column({ name: 'sort_order', type: 'int', default: 0 })
   sortOrder!: number;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.serviceImages, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.serviceImages, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @ManyToOne(() => Service, (service) => service.images, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.images, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'service_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },

@@ -39,11 +39,15 @@ export class ProviderIndividualDetail {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt!: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.providerIndividualDetails, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.providerIndividualDetails, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @OneToOne(() => Provider, (provider) => provider.individualDetails, { onDelete: 'CASCADE' })
+  @OneToOne(() => Provider, (provider) => provider.individualDetails, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },

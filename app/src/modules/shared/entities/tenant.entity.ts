@@ -1,4 +1,10 @@
-import { CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Column,
+} from 'typeorm';
 import { AvailabilitySlot } from './availability-slot.entity';
 import { Booking } from './booking.entity';
 import { BookingStatusHistory } from './booking-status-history.entity';
@@ -46,7 +52,10 @@ export class Tenant {
   @OneToMany(() => ServiceImage, (serviceImage) => serviceImage.tenant)
   serviceImages!: ServiceImage[];
 
-  @OneToMany(() => AvailabilitySlot, (availabilitySlot) => availabilitySlot.tenant)
+  @OneToMany(
+    () => AvailabilitySlot,
+    (availabilitySlot) => availabilitySlot.tenant,
+  )
   availabilitySlots!: AvailabilitySlot[];
 
   @OneToMany(() => Booking, (booking) => booking.tenant)
