@@ -34,11 +34,15 @@ export class ProviderDocument {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.providerDocuments, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.providerDocuments, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @ManyToOne(() => Provider, (provider) => provider.documents, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Provider, (provider) => provider.documents, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },

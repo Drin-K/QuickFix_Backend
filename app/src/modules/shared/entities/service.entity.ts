@@ -37,7 +37,13 @@ export class Service {
   @Column({ type: 'text', nullable: true })
   description!: string | null;
 
-  @Column({ name: 'base_price', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'base_price',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   basePrice!: string;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })
@@ -53,14 +59,18 @@ export class Service {
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @ManyToOne(() => Provider, (provider) => provider.services, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Provider, (provider) => provider.services, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },
   ])
   provider!: Provider;
 
-  @ManyToOne(() => Category, (category) => category.services, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => Category, (category) => category.services, {
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'category_id' })
   category!: Category;
 

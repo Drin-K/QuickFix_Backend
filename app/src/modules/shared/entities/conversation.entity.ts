@@ -1,4 +1,13 @@
-import { CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique, Column } from 'typeorm';
+import {
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  Unique,
+  Column,
+} from 'typeorm';
 import { Message } from './message.entity';
 import { Provider } from './provider.entity';
 import { Tenant } from './tenant.entity';
@@ -23,7 +32,9 @@ export class Conversation {
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.conversations, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.conversations, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
@@ -31,7 +42,9 @@ export class Conversation {
   @JoinColumn({ name: 'client_user_id' })
   clientUser!: User;
 
-  @ManyToOne(() => Provider, (provider) => provider.conversations, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Provider, (provider) => provider.conversations, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },

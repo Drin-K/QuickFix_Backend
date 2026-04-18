@@ -42,7 +42,13 @@ export class Booking {
   @Column({ name: 'booking_date', type: 'timestamp' })
   bookingDate!: Date;
 
-  @Column({ name: 'total_price', type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column({
+    name: 'total_price',
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    default: 0,
+  })
   totalPrice!: string;
 
   @Column({ type: 'text', nullable: true })
@@ -62,21 +68,27 @@ export class Booking {
   @JoinColumn({ name: 'client_user_id' })
   clientUser!: User;
 
-  @ManyToOne(() => Provider, (provider) => provider.bookings, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Provider, (provider) => provider.bookings, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },
   ])
   provider!: Provider;
 
-  @ManyToOne(() => Service, (service) => service.bookings, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Service, (service) => service.bookings, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'service_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },
   ])
   service!: Service;
 
-  @ManyToOne(() => BookingStatus, (status) => status.bookings, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => BookingStatus, (status) => status.bookings, {
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'status_id' })
   status!: BookingStatus;
 

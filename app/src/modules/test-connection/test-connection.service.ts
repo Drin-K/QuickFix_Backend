@@ -1,4 +1,8 @@
-import { Injectable, OnApplicationBootstrap, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  OnApplicationBootstrap,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { DataSource } from 'typeorm';
 
 @Injectable()

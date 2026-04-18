@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { Booking } from './booking.entity';
 import { BookingStatus } from './booking-status.entity';
 import { Tenant } from './tenant.entity';
@@ -24,11 +32,15 @@ export class BookingStatusHistory {
   @CreateDateColumn({ name: 'changed_at', type: 'timestamp' })
   changedAt!: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.bookingStatusHistoryEntries, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.bookingStatusHistoryEntries, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @ManyToOne(() => Booking, (booking) => booking.statusHistoryEntries, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Booking, (booking) => booking.statusHistoryEntries, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'booking_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },
@@ -42,7 +54,9 @@ export class BookingStatusHistory {
   @JoinColumn({ name: 'old_status_id' })
   oldStatus!: BookingStatus | null;
 
-  @ManyToOne(() => BookingStatus, (status) => status.newStatusHistoryEntries, { onDelete: 'RESTRICT' })
+  @ManyToOne(() => BookingStatus, (status) => status.newStatusHistoryEntries, {
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn({ name: 'new_status_id' })
   newStatus!: BookingStatus;
 }

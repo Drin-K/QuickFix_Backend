@@ -38,11 +38,15 @@ export class AvailabilitySlot {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updatedAt!: Date;
 
-  @ManyToOne(() => Tenant, (tenant) => tenant.availabilitySlots, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.availabilitySlots, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'tenant_id' })
   tenant!: Tenant;
 
-  @ManyToOne(() => Provider, (provider) => provider.availabilitySlots, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Provider, (provider) => provider.availabilitySlots, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn([
     { name: 'provider_id', referencedColumnName: 'id' },
     { name: 'tenant_id', referencedColumnName: 'tenantId' },
