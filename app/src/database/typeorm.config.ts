@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { Category } from '../modules/categories/category.entity';
-import { User } from '../modules/users/user.entity';
+import { entityClasses } from '../modules/shared/entities';
 import { DataSourceOptions } from 'typeorm';
 
 const parseNumber = (value: string | undefined, fallback: number): number => {
@@ -28,7 +27,7 @@ export const dataSourceOptions: DataSourceOptions = {
   username: process.env.DB_USERNAME ?? 'postgres',
   password: process.env.DB_PASSWORD ?? 'postgres',
   database: process.env.DB_NAME ?? 'quickfix',
-  entities: [User, Category],
+  entities: entityClasses,
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],
   synchronize: false,
   logging: parseBoolean(process.env.DB_LOGGING),
