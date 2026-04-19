@@ -25,7 +25,7 @@ export const dataSourceOptions: DataSourceOptions = {
   host: process.env.DB_HOST ?? 'localhost',
   port: parseNumber(process.env.DB_PORT, 5432),
   username: process.env.DB_USERNAME ?? 'postgres',
-  password: process.env.DB_PASSWORD ?? 'postgres',
+  password: process.env.DB_PASSWORD ?? '12345678',
   database: process.env.DB_NAME ?? 'quickfix',
   entities: entityClasses,
   migrations: [`${__dirname}/migrations/*{.ts,.js}`],

@@ -11,14 +11,7 @@ import { DataSource, Repository } from 'typeorm';
 import { Provider, Role, Tenant, User } from '../shared/entities';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-
-type AuthRole = 'client' | 'provider';
-
-type AuthPayload = {
-  sub: number;
-  tenantId: number | null;
-  role: AuthRole;
-};
+import { AuthPayload, AuthRole } from './jwt-auth.guard';
 
 type AuthResponse = {
   message: string;
