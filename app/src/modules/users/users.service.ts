@@ -48,7 +48,6 @@ export class UsersService {
       where: { id: user.id },
       relations: {
         role: true,
-        tenant: true,
         provider: {
           tenant: true,
         },
@@ -71,7 +70,7 @@ export class UsersService {
     const companyTenant =
       role === 'provider'
         ? (provider?.tenant ?? null)
-        : (currentUser.tenant ?? currentUser.ownedTenant);
+        : currentUser.ownedTenant;
 
     if (role === 'provider') {
       if (!provider || !tenantId || provider.tenantId !== tenantId) {
@@ -79,9 +78,9 @@ export class UsersService {
       }
     } else if (role === 'admin') {
       if (
-        !(currentUser.tenant || currentUser.ownedTenant) ||
+        !currentUser.ownedTenant ||
         !tenantId ||
-        (currentUser.tenant?.id ?? currentUser.ownedTenant?.id) !== tenantId
+        currentUser.ownedTenant.id !== tenantId
       ) {
         throw new UnauthorizedException('Invalid tenant context');
       }

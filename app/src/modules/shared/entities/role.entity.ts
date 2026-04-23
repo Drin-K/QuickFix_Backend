@@ -9,9 +9,6 @@ export class Role {
   @Column({ type: 'varchar', length: 50, unique: true })
   name!: string;
 
-  @Column({ type: 'varchar', length: 20, default: 'platform' })
-  scope!: 'platform' | 'tenant';
-
   @OneToMany(() => User, (user) => user.role)
   users!: User[];
 }

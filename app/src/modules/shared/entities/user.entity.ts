@@ -23,9 +23,6 @@ export class User {
   @PrimaryGeneratedColumn({ type: 'int' })
   id!: number;
 
-  @Column({ name: 'tenant_id', type: 'int', nullable: true })
-  tenantId!: number | null;
-
   @Column({ name: 'role_id', type: 'int' })
   roleId!: number;
 
@@ -53,13 +50,6 @@ export class User {
   @ManyToOne(() => Role, (role) => role.users, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'role_id' })
   role!: Role;
-
-  @ManyToOne(() => Tenant, (tenant) => tenant.users, {
-    nullable: true,
-    onDelete: 'SET NULL',
-  })
-  @JoinColumn({ name: 'tenant_id' })
-  tenant!: Tenant | null;
 
   @OneToOne(() => Provider, (provider) => provider.ownerUser)
   provider!: Provider | null;
