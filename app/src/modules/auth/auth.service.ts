@@ -11,7 +11,7 @@ import { DataSource, Repository } from 'typeorm';
 import { Provider, Role, Tenant, User } from '../shared/entities';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { AuthPayload, AuthRole } from './jwt-auth.guard';
+import { AuthPayload, AuthRole, isCompanyScopedRole } from './jwt-auth.guard';
 
 type AuthResponse = {
   message: string;
@@ -77,7 +77,10 @@ export class AuthService {
 
       if (registerDto.accountType === 'provider') {
         const tenant = tenantsRepository.create({
-          name: this.buildTenantName(registerDto.fullName),
+          name: registerDto.fullName.trim(),
+          slug: this.buildTenantSlug(registerDto.fullName),
+          ownerUserId: savedUser.id,
+          isActive: true,
         });
 
         const savedTenant = await tenantsRepository.save(tenant);
@@ -126,6 +129,7 @@ export class AuthService {
       relations: {
         role: true,
         provider: true,
+        ownedTenant: true,
       },
     });
 
@@ -140,8 +144,11 @@ export class AuthService {
     }
 
     const role = user.role.name as AuthRole;
-    const tenantId =
-      role === 'provider' ? (user.provider?.tenantId ?? null) : null;
+    const tenantId = this.resolveTenantIdForUser(role, user);
+
+    if (isCompanyScopedRole(role) && !tenantId) {
+      throw new UnauthorizedException('Invalid company context');
+    }
 
     const accessToken = await this.signToken({
       sub: user.id,
@@ -178,7 +185,23 @@ export class AuthService {
     return rolesRepository.save(role);
   }
 
-  private buildTenantName(fullName: string): string {
+  private resolveTenantIdForUser(role: AuthRole, user: User): number | null {
+    if (role === 'provider') {
+      return user.provider?.tenantId ?? null;
+    }
+
+    if (role === 'admin') {
+      return user.ownedTenant?.id ?? null;
+    }
+
+    if (isCompanyScopedRole(role)) {
+      return null;
+    }
+
+    return null;
+  }
+
+  private buildTenantSlug(fullName: string): string {
     const normalizedName = fullName
       .trim()
       .toLowerCase()

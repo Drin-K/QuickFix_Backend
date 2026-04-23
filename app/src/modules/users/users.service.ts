@@ -5,7 +5,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AuthRole, RequestUser } from '../auth/jwt-auth.guard';
+import {
+  AuthRole,
+  RequestUser,
+  isCompanyScopedRole,
+} from '../auth/jwt-auth.guard';
 import { User } from '../shared/entities';
 
 export type MeResponse = {
@@ -47,6 +51,7 @@ export class UsersService {
         provider: {
           tenant: true,
         },
+        ownedTenant: true,
       },
     });
 
@@ -62,9 +67,21 @@ export class UsersService {
 
     const provider = currentUser.provider;
     const tenantId = user.tenantId ?? null;
+    const companyTenant =
+      role === 'provider'
+        ? (provider?.tenant ?? null)
+        : currentUser.ownedTenant;
 
     if (role === 'provider') {
       if (!provider || !tenantId || provider.tenantId !== tenantId) {
+        throw new UnauthorizedException('Invalid tenant context');
+      }
+    } else if (role === 'admin') {
+      if (
+        !currentUser.ownedTenant ||
+        !tenantId ||
+        currentUser.ownedTenant.id !== tenantId
+      ) {
         throw new UnauthorizedException('Invalid tenant context');
       }
     } else if (tenantId) {
@@ -79,8 +96,8 @@ export class UsersService {
       role,
       tenantId,
       tenant:
-        role === 'provider' && provider?.tenant
-          ? { id: provider.tenant.id, name: provider.tenant.name }
+        isCompanyScopedRole(role) && companyTenant
+          ? { id: companyTenant.id, name: companyTenant.name }
           : null,
       provider:
         role === 'provider' && provider

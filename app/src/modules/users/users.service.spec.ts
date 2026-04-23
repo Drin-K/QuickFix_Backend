@@ -69,6 +69,7 @@ describe('UsersService', () => {
         updatedAt: new Date(),
         tenant: { id: 99, name: 'tenant-foo', createdAt: new Date() },
       },
+      ownedTenant: null,
     } as unknown as User);
 
     const requestUser: RequestUser = { id: 1, role: 'provider', tenantId: 99 };
@@ -88,6 +89,7 @@ describe('UsersService', () => {
       phone: '123',
       role: { id: 1, name: 'client', users: [] },
       provider: null,
+      ownedTenant: null,
     } as unknown as User);
 
     const requestUser: RequestUser = { id: 2, role: 'client', tenantId: null };
@@ -107,11 +109,40 @@ describe('UsersService', () => {
       phone: null,
       role: { id: 1, name: 'client', users: [] },
       provider: null,
+      ownedTenant: null,
     } as unknown as User);
 
     const requestUser: RequestUser = { id: 3, role: 'provider', tenantId: 1 };
     await expect(usersService.getMe(requestUser)).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
+  });
+
+  it('returns admin user with tenant and without provider profile', async () => {
+    usersRepository.findOne.mockResolvedValueOnce({
+      id: 4,
+      email: 'admin@example.com',
+      fullName: 'Admin One',
+      phone: null,
+      role: { id: 3, name: 'admin', users: [] },
+      provider: null,
+      ownedTenant: {
+        id: 77,
+        name: 'company-admin',
+        slug: 'company-admin',
+        ownerUserId: 4,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    } as unknown as User);
+
+    const requestUser: RequestUser = { id: 4, role: 'admin', tenantId: 77 };
+    const response = await usersService.getMe(requestUser);
+
+    expect(response.role).toBe('admin');
+    expect(response.tenantId).toBe(77);
+    expect(response.tenant).toEqual({ id: 77, name: 'company-admin' });
+    expect(response.provider).toBeNull();
   });
 });

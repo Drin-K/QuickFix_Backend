@@ -50,7 +50,7 @@ export class InitSharedEntities1776470338788 implements MigrationInterface {
       `CREATE TABLE "services" ("id" SERIAL NOT NULL, "tenant_id" integer NOT NULL, "provider_id" integer NOT NULL, "category_id" integer NOT NULL, "title" character varying(255) NOT NULL, "description" text, "base_price" numeric(10,2) NOT NULL DEFAULT '0', "is_active" boolean NOT NULL DEFAULT true, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "services_id_tenant_uniq" UNIQUE ("id", "tenant_id"), CONSTRAINT "PK_ba2d347a3168a296416c6c5ccb2" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "tenants" ("id" SERIAL NOT NULL, "name" character varying(255) NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_32731f181236a46182a38c992a8" UNIQUE ("name"), CONSTRAINT "PK_53be67a04681c66b87ee27c9321" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "tenants" ("id" SERIAL NOT NULL, "name" character varying(255) NOT NULL, "slug" character varying(255) NOT NULL, "owner_user_id" integer NOT NULL, "is_active" boolean NOT NULL DEFAULT true, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_c4e8ed2be25a5f2a863f5b807f2" UNIQUE ("slug"), CONSTRAINT "REL_3fe51eb17d6b78b00e6cf26787" UNIQUE ("owner_user_id"), CONSTRAINT "PK_53be67a04681c66b87ee27c9321" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "booking_status_history" ("id" SERIAL NOT NULL, "tenant_id" integer NOT NULL, "booking_id" integer NOT NULL, "old_status_id" integer, "new_status_id" integer NOT NULL, "changed_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "booking_status_history_id_tenant_uniq" UNIQUE ("id", "tenant_id"), CONSTRAINT "PK_589851c586ac15a59462092c0cd" PRIMARY KEY ("id"))`,
@@ -158,6 +158,9 @@ export class InitSharedEntities1776470338788 implements MigrationInterface {
       `ALTER TABLE "services" ADD CONSTRAINT "FK_1f8d1173481678a035b4a81a4ec" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE RESTRICT ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
+      `ALTER TABLE "tenants" ADD CONSTRAINT "FK_3fe51eb17d6b78b00e6cf267873" FOREIGN KEY ("owner_user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
       `ALTER TABLE "booking_status_history" ADD CONSTRAINT "FK_dfe8effa707ea36ffe844b578c2" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
@@ -246,6 +249,9 @@ export class InitSharedEntities1776470338788 implements MigrationInterface {
     );
     await queryRunner.query(
       `ALTER TABLE "services" DROP CONSTRAINT "FK_1f8d1173481678a035b4a81a4ec"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "tenants" DROP CONSTRAINT "FK_3fe51eb17d6b78b00e6cf267873"`,
     );
     await queryRunner.query(
       `ALTER TABLE "services" DROP CONSTRAINT "FK_c5c682f4ea9f6063621a12b2d3f"`,
