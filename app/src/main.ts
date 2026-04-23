@@ -31,6 +31,15 @@ async function bootstrap() {
     .setTitle('QuickFix API')
     .setDescription('API documentation for QuickFix backend')
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Paste a valid JWT access token returned by /api/auth/login or /api/auth/register.',
+      },
+      'bearer',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
