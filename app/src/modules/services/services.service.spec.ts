@@ -81,22 +81,24 @@ describe('ServicesService', () => {
       ],
     });
 
-    expect(repository.find).toHaveBeenCalledWith({
-      where: {
-        tenantId: 12,
-        isActive: true,
-      },
-      relations: {
-        category: true,
-        provider: true,
-        images: true,
-      },
-      order: {
-        createdAt: 'DESC',
-        images: {
-          sortOrder: 'ASC',
+    expect(repository.find.mock.calls[0]).toEqual([
+      {
+        where: {
+          tenantId: 12,
+          isActive: true,
+        },
+        relations: {
+          category: true,
+          provider: true,
+          images: true,
+        },
+        order: {
+          createdAt: 'DESC',
+          images: {
+            sortOrder: 'ASC',
+          },
         },
       },
-    });
+    ]);
   });
 });

@@ -73,7 +73,9 @@ export class ServicesController {
 
       return payload.tenantId ?? null;
     } catch {
-      throw new UnauthorizedException('Invalid or expired authentication token');
+      throw new UnauthorizedException(
+        'Invalid or expired authentication token',
+      );
     }
   }
 }

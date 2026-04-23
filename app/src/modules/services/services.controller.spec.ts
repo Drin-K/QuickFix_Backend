@@ -90,6 +90,8 @@ describe('ServicesController', () => {
       },
     } as Request;
 
-    expect(() => controller.getServices(request)).toThrow(UnauthorizedException);
+    expect(() => controller.getServices(request)).toThrow(
+      UnauthorizedException,
+    );
   });
 });
