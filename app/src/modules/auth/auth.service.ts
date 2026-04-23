@@ -63,6 +63,7 @@ export class AuthService {
       );
 
       const user = usersRepository.create({
+        tenantId: null,
         roleId: role.id,
         fullName: registerDto.fullName.trim(),
         email: registerDto.email.toLowerCase().trim(),
@@ -85,6 +86,9 @@ export class AuthService {
 
         const savedTenant = await tenantsRepository.save(tenant);
         tenantId = savedTenant.id;
+
+        savedUser.tenantId = tenantId;
+        await usersRepository.save(savedUser);
 
         const provider = providersRepository.create({
           tenantId,
@@ -128,6 +132,7 @@ export class AuthService {
       where: { email: loginDto.email.toLowerCase().trim() },
       relations: {
         role: true,
+        tenant: true,
         provider: true,
         ownedTenant: true,
       },
@@ -181,17 +186,24 @@ export class AuthService {
       return existingRole;
     }
 
-    const role = rolesRepository.create({ name: roleName });
+    const role = rolesRepository.create({
+      name: roleName,
+      scope: isCompanyScopedRole(roleName) ? 'tenant' : 'platform',
+    });
     return rolesRepository.save(role);
   }
 
   private resolveTenantIdForUser(role: AuthRole, user: User): number | null {
+    if (user.tenantId) {
+      return user.tenantId;
+    }
+
     if (role === 'provider') {
       return user.provider?.tenantId ?? null;
     }
 
     if (role === 'admin') {
-      return user.ownedTenant?.id ?? null;
+      return user.tenant?.id ?? user.ownedTenant?.id ?? null;
     }
 
     if (isCompanyScopedRole(role)) {
