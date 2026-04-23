@@ -5,7 +5,7 @@ describe('InitSharedEntities1776470338788', () => {
   it('creates tenant ownership columns and owner foreign key', async () => {
     const executedQueries: string[] = [];
     const queryRunner = {
-      query: jest.fn(async (sql: string) => {
+      query: jest.fn((sql: string) => {
         executedQueries.push(sql);
       }),
     } as unknown as QueryRunner;
@@ -29,7 +29,9 @@ describe('InitSharedEntities1776470338788', () => {
       executedQueries.some(
         (sql) =>
           sql.includes('ALTER TABLE "tenants" ADD CONSTRAINT') &&
-          sql.includes('FOREIGN KEY ("owner_user_id") REFERENCES "users"("id")'),
+          sql.includes(
+            'FOREIGN KEY ("owner_user_id") REFERENCES "users"("id")',
+          ),
       ),
     ).toBe(true);
   });
@@ -37,7 +39,7 @@ describe('InitSharedEntities1776470338788', () => {
   it('drops the tenant owner foreign key on rollback', async () => {
     const executedQueries: string[] = [];
     const queryRunner = {
-      query: jest.fn(async (sql: string) => {
+      query: jest.fn((sql: string) => {
         executedQueries.push(sql);
       }),
     } as unknown as QueryRunner;

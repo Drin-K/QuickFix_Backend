@@ -54,10 +54,14 @@ describe('CategoriesService', () => {
       ],
     });
 
-    expect(repository.find).toHaveBeenCalledWith({
-      order: {
-        name: 'ASC',
-      },
-    });
+    expect(repository.find.mock.calls).toEqual([
+      [
+        {
+          order: {
+            name: 'ASC',
+          },
+        },
+      ],
+    ]);
   });
 });
