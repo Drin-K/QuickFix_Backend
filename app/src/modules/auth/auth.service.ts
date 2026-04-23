@@ -200,7 +200,6 @@ export class AuthService {
 
     return null;
   }
-
   private buildTenantSlug(fullName: string): string {
     const normalizedName = fullName
       .trim()
