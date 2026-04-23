@@ -7,12 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 
-export type AuthRole = 'client' | 'provider' | 'admin';
-
-export const COMPANY_SCOPED_ROLES: AuthRole[] = ['provider', 'admin'];
-
-export const isCompanyScopedRole = (role: AuthRole): boolean =>
-  COMPANY_SCOPED_ROLES.includes(role);
+export type AuthRole = 'client' | 'provider';
 
 export type AuthPayload = {
   sub: number;
