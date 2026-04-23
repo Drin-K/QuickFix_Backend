@@ -53,6 +53,9 @@ export class Tenant {
   @JoinColumn({ name: 'owner_user_id' })
   ownerUser!: User;
 
+  @OneToMany(() => User, (user) => user.tenant)
+  users!: User[];
+
   @OneToMany(() => Provider, (provider) => provider.tenant)
   providers!: Provider[];
 

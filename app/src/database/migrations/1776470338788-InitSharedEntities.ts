@@ -14,10 +14,10 @@ export class InitSharedEntities1776470338788 implements MigrationInterface {
       `CREATE TABLE "reviews" ("id" SERIAL NOT NULL, "tenant_id" integer NOT NULL, "booking_id" integer NOT NULL, "client_user_id" integer NOT NULL, "provider_id" integer NOT NULL, "rating" integer NOT NULL, "comment" text, "created_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_bbd6ac6e3e6a8f8c6e0e8692d63" UNIQUE ("booking_id"), CONSTRAINT "reviews_id_tenant_uniq" UNIQUE ("id", "tenant_id"), CONSTRAINT "REL_8be2c4a9eeaa2bddbb69888d0b" UNIQUE ("booking_id", "tenant_id"), CONSTRAINT "CHK_2ea381a5c2f8bef0073a48f6bd" CHECK ("rating" BETWEEN 1 AND 5), CONSTRAINT "PK_231ae565c273ee700b283f15c1d" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "roles" ("id" SERIAL NOT NULL, "name" character varying(50) NOT NULL, CONSTRAINT "UQ_648e3f5447f725579d7d4ffdfb7" UNIQUE ("name"), CONSTRAINT "PK_c1433d71a4838793a49dcad46ab" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "roles" ("id" SERIAL NOT NULL, "name" character varying(50) NOT NULL, "scope" character varying(20) NOT NULL DEFAULT 'platform', CONSTRAINT "UQ_648e3f5447f725579d7d4ffdfb7" UNIQUE ("name"), CONSTRAINT "PK_c1433d71a4838793a49dcad46ab" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
-      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "role_id" integer NOT NULL, "full_name" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password_hash" character varying(255) NOT NULL, "phone" character varying(50), "is_active" boolean NOT NULL DEFAULT true, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
+      `CREATE TABLE "users" ("id" SERIAL NOT NULL, "tenant_id" integer, "role_id" integer NOT NULL, "full_name" character varying(255) NOT NULL, "email" character varying(255) NOT NULL, "password_hash" character varying(255) NOT NULL, "phone" character varying(50), "is_active" boolean NOT NULL DEFAULT true, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`,
     );
     await queryRunner.query(
       `CREATE TABLE "messages" ("id" SERIAL NOT NULL, "tenant_id" integer NOT NULL, "conversation_id" integer NOT NULL, "sender_user_id" integer NOT NULL, "message_type_id" integer NOT NULL, "content" text NOT NULL, "sent_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "messages_id_tenant_uniq" UNIQUE ("id", "tenant_id"), CONSTRAINT "PK_18325f38ae6de43878487eff986" PRIMARY KEY ("id"))`,
@@ -93,6 +93,9 @@ export class InitSharedEntities1776470338788 implements MigrationInterface {
     );
     await queryRunner.query(
       `ALTER TABLE "users" ADD CONSTRAINT "FK_a2cecd1a3531c0b041e29ba46e1" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE RESTRICT ON UPDATE NO ACTION`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "users" ADD CONSTRAINT "FK_3f6b320e277f52f181ad44e87bb" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE SET NULL ON UPDATE NO ACTION`,
     );
     await queryRunner.query(
       `ALTER TABLE "messages" ADD CONSTRAINT "FK_558150f45586066db2415eb28c5" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE NO ACTION`,
@@ -315,6 +318,9 @@ export class InitSharedEntities1776470338788 implements MigrationInterface {
     );
     await queryRunner.query(
       `ALTER TABLE "users" DROP CONSTRAINT "FK_a2cecd1a3531c0b041e29ba46e1"`,
+    );
+    await queryRunner.query(
+      `ALTER TABLE "users" DROP CONSTRAINT "FK_3f6b320e277f52f181ad44e87bb"`,
     );
     await queryRunner.query(
       `ALTER TABLE "reviews" DROP CONSTRAINT "FK_aacdfc781baaadebe8f4bfc6f63"`,
