@@ -77,7 +77,10 @@ export class AuthService {
 
       if (registerDto.accountType === 'provider') {
         const tenant = tenantsRepository.create({
-          name: this.buildTenantName(registerDto.fullName),
+          name: registerDto.fullName.trim(),
+          slug: this.buildTenantSlug(registerDto.fullName),
+          ownerUserId: savedUser.id,
+          isActive: true,
         });
 
         const savedTenant = await tenantsRepository.save(tenant);
@@ -178,7 +181,7 @@ export class AuthService {
     return rolesRepository.save(role);
   }
 
-  private buildTenantName(fullName: string): string {
+  private buildTenantSlug(fullName: string): string {
     const normalizedName = fullName
       .trim()
       .toLowerCase()

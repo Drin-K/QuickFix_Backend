@@ -16,6 +16,7 @@ import { Message } from './message.entity';
 import { Provider } from './provider.entity';
 import { Review } from './review.entity';
 import { Role } from './role.entity';
+import { Tenant } from './tenant.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -52,6 +53,9 @@ export class User {
 
   @OneToOne(() => Provider, (provider) => provider.ownerUser)
   provider!: Provider | null;
+
+  @OneToOne(() => Tenant, (tenant) => tenant.ownerUser)
+  ownedTenant!: Tenant | null;
 
   @OneToMany(() => Booking, (booking) => booking.clientUser)
   bookings!: Booking[];
