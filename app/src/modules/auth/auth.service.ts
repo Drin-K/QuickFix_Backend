@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
 import { compare, hash } from 'bcryptjs';
 import { DataSource, Repository } from 'typeorm';
 import { Provider, Role, Tenant, User } from '../shared/entities';
@@ -78,9 +77,6 @@ export class AuthService {
       if (registerDto.accountType === 'provider') {
         const tenant = tenantsRepository.create({
           name: registerDto.fullName.trim(),
-          slug: this.buildTenantSlug(registerDto.fullName),
-          ownerUserId: savedUser.id,
-          isActive: true,
         });
 
         const savedTenant = await tenantsRepository.save(tenant);
@@ -179,16 +175,6 @@ export class AuthService {
 
     const role = rolesRepository.create({ name: roleName });
     return rolesRepository.save(role);
-  }
-
-  private buildTenantSlug(fullName: string): string {
-    const normalizedName = fullName
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-
-    return `tenant-${normalizedName || 'provider'}-${randomUUID()}`;
   }
 
   private signToken(payload: AuthPayload): Promise<string> {
