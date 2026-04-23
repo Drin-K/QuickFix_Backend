@@ -13,4 +13,3 @@ export class UsersController {
     return this.usersService.getMe(user);
   }
 }
-

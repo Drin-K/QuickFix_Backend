@@ -36,7 +36,11 @@ describe('UsersService', () => {
 
   it('throws when user does not exist', async () => {
     usersRepository.findOne.mockResolvedValueOnce(null);
-    const requestUser: RequestUser = { id: 123, role: 'client', tenantId: null };
+    const requestUser: RequestUser = {
+      id: 123,
+      role: 'client',
+      tenantId: null,
+    };
 
     await expect(usersService.getMe(requestUser)).rejects.toBeInstanceOf(
       NotFoundException,
@@ -111,4 +115,3 @@ describe('UsersService', () => {
     );
   });
 });
-
