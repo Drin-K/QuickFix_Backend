@@ -23,7 +23,8 @@ export class CreateBookingDto {
   @ApiPropertyOptional({
     example: 5,
     minimum: 1,
-    description: 'Provider ID for the booking. Optional when the selected service already maps to a provider.',
+    description:
+      'Provider ID for the booking. Optional when the selected service already maps to a provider.',
   })
   @Type(() => Number)
   @IsOptional()

@@ -15,7 +15,8 @@ export class HealthController {
   @Get('db')
   @ApiOperation({
     summary: 'Check database health',
-    description: 'Runs a simple database query to verify that the backend can reach the database.',
+    description:
+      'Runs a simple database query to verify that the backend can reach the database.',
   })
   @ApiOkResponse({
     description: 'Database connection is healthy.',

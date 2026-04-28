@@ -28,12 +28,14 @@ export class BookingsController {
   @Post()
   @ApiOperation({
     summary: 'Create a booking',
-    description: 'Creates a booking for the authenticated client. The tenant is resolved from the JWT token or from the x-tenant-id header when tenant context is missing in the token.',
+    description:
+      'Creates a booking for the authenticated client. The tenant is resolved from the JWT token or from the x-tenant-id header when tenant context is missing in the token.',
   })
   @ApiHeader({
     name: 'x-tenant-id',
     required: false,
-    description: 'Tenant identifier. Required only when the authenticated token does not already contain tenant context.',
+    description:
+      'Tenant identifier. Required only when the authenticated token does not already contain tenant context.',
     schema: { type: 'integer', minimum: 1 },
   })
   @ApiBody({ type: CreateBookingDto })
@@ -76,12 +78,14 @@ export class BookingsController {
   @Get('my')
   @ApiOperation({
     summary: 'Get current user bookings',
-    description: 'Returns the booking history for the authenticated user in the resolved tenant context.',
+    description:
+      'Returns the booking history for the authenticated user in the resolved tenant context.',
   })
   @ApiHeader({
     name: 'x-tenant-id',
     required: false,
-    description: 'Tenant identifier. Required only when the authenticated token does not already contain tenant context.',
+    description:
+      'Tenant identifier. Required only when the authenticated token does not already contain tenant context.',
     schema: { type: 'integer', minimum: 1 },
   })
   @ApiOkResponse({

@@ -21,7 +21,8 @@ export class UsersController {
   @Get('me')
   @ApiOperation({
     summary: 'Get authenticated user profile',
-    description: 'Returns the current authenticated user and provider or tenant context when applicable.',
+    description:
+      'Returns the current authenticated user and provider or tenant context when applicable.',
   })
   @ApiOkResponse({
     description: 'Authenticated user profile returned successfully.',
@@ -48,7 +49,8 @@ export class UsersController {
     },
   })
   @ApiUnauthorizedResponse({
-    description: 'Authentication token is missing, invalid, expired, or has an invalid tenant context.',
+    description:
+      'Authentication token is missing, invalid, expired, or has an invalid tenant context.',
   })
   @ApiNotFoundResponse({
     description: 'Authenticated user was not found.',

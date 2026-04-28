@@ -15,7 +15,8 @@ export class TestConnectionController {
   @Get()
   @ApiOperation({
     summary: 'Check frontend-backend connectivity',
-    description: 'Verifies the backend is reachable and that the database connection is still available.',
+    description:
+      'Verifies the backend is reachable and that the database connection is still available.',
   })
   @ApiOkResponse({
     description: 'Backend responded successfully.',
