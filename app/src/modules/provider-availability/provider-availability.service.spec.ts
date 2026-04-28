@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { AvailabilitySlot, Provider } from '../shared/entities';
 import type { RequestUser } from '../auth/jwt-auth.guard';
 import { ProviderAvailabilityService } from './provider-availability.service';
@@ -118,13 +117,18 @@ describe('ProviderAvailabilityService', () => {
       tenantId: 8,
     });
     queryBuilder.getOne.mockResolvedValue(null);
-    availabilitySlotsRepository.create.mockImplementation((value) => value);
-    availabilitySlotsRepository.save.mockImplementation(async (value) => ({
-      id: 20,
-      createdAt: new Date('2026-04-28T11:00:00.000Z'),
-      updatedAt: new Date('2026-04-28T11:00:00.000Z'),
-      ...value,
-    }));
+    availabilitySlotsRepository.create.mockImplementation(
+      (value: Partial<AvailabilitySlot>) => value,
+    );
+    availabilitySlotsRepository.save.mockImplementation(
+      (value: Partial<AvailabilitySlot>) =>
+        Promise.resolve({
+          id: 20,
+          createdAt: new Date('2026-04-28T11:00:00.000Z'),
+          updatedAt: new Date('2026-04-28T11:00:00.000Z'),
+          ...value,
+        }),
+    );
 
     const response = await service.createAvailability(
       {
@@ -223,9 +227,9 @@ describe('ProviderAvailabilityService', () => {
       isBooked: true,
     });
 
-    await expect(service.deleteAvailability(2, requestUser)).rejects.toBeInstanceOf(
-      ConflictException,
-    );
+    await expect(
+      service.deleteAvailability(2, requestUser),
+    ).rejects.toBeInstanceOf(ConflictException);
   });
 
   it('throws when slot does not belong to current provider', async () => {
@@ -236,9 +240,9 @@ describe('ProviderAvailabilityService', () => {
     });
     availabilitySlotsRepository.findOne.mockResolvedValue(null);
 
-    await expect(service.deleteAvailability(99, requestUser)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.deleteAvailability(99, requestUser),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('rejects non-provider users', async () => {

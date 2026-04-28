@@ -31,7 +31,9 @@ export class ProviderAvailabilityService {
     private readonly providersRepository: Repository<Provider>,
   ) {}
 
-  async getMyAvailability(user: RequestUser): Promise<AvailabilitySlotResponse[]> {
+  async getMyAvailability(
+    user: RequestUser,
+  ): Promise<AvailabilitySlotResponse[]> {
     const provider = await this.getCurrentProvider(user);
 
     const slots = await this.availabilitySlotsRepository.find({
@@ -100,7 +102,9 @@ export class ProviderAvailabilityService {
     }
 
     if (slot.isBooked) {
-      throw new ConflictException('Booked availability slots cannot be deleted');
+      throw new ConflictException(
+        'Booked availability slots cannot be deleted',
+      );
     }
 
     await this.availabilitySlotsRepository.remove(slot);

@@ -20,7 +20,8 @@ export class AuthController {
   @Post('register')
   @ApiOperation({
     summary: 'Register a new account',
-    description: 'Creates a new client or provider account and returns a JWT bearer token for immediate authenticated access.',
+    description:
+      'Creates a new client or provider account and returns a JWT bearer token for immediate authenticated access.',
   })
   @ApiBody({ type: RegisterDto })
   @ApiOkResponse({
@@ -52,7 +53,8 @@ export class AuthController {
   @Post('login')
   @ApiOperation({
     summary: 'Authenticate a user',
-    description: 'Validates user credentials and returns a JWT bearer token plus the current user context.',
+    description:
+      'Validates user credentials and returns a JWT bearer token plus the current user context.',
   })
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({

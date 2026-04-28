@@ -32,18 +32,21 @@ export class ServicesController {
   @Get()
   @ApiOperation({
     summary: 'List services for a tenant',
-    description: 'Returns active services for a tenant. You can provide tenant context with a Bearer token that includes tenantId or by sending the x-tenant-id header.',
+    description:
+      'Returns active services for a tenant. You can provide tenant context with a Bearer token that includes tenantId or by sending the x-tenant-id header.',
   })
   @ApiHeader({
     name: 'Authorization',
     required: false,
-    description: 'Optional Bearer JWT. If provided and valid, tenantId is read from the token.',
+    description:
+      'Optional Bearer JWT. If provided and valid, tenantId is read from the token.',
     schema: { type: 'string', example: 'Bearer <jwt-token>' },
   })
   @ApiHeader({
     name: 'x-tenant-id',
     required: false,
-    description: 'Tenant identifier. Required when a bearer token is not provided or does not include tenantId.',
+    description:
+      'Tenant identifier. Required when a bearer token is not provided or does not include tenantId.',
     schema: { type: 'integer', minimum: 1 },
   })
   @ApiOkResponse({
@@ -86,7 +89,8 @@ export class ServicesController {
   @Get(':id')
   @ApiOperation({
     summary: 'Get service details',
-    description: 'Returns full details for a single service within the resolved tenant context.',
+    description:
+      'Returns full details for a single service within the resolved tenant context.',
   })
   @ApiParam({
     name: 'id',
@@ -97,13 +101,15 @@ export class ServicesController {
   @ApiHeader({
     name: 'Authorization',
     required: false,
-    description: 'Optional Bearer JWT. If provided and valid, tenantId is read from the token.',
+    description:
+      'Optional Bearer JWT. If provided and valid, tenantId is read from the token.',
     schema: { type: 'string', example: 'Bearer <jwt-token>' },
   })
   @ApiHeader({
     name: 'x-tenant-id',
     required: false,
-    description: 'Tenant identifier. Required when a bearer token is not provided or does not include tenantId.',
+    description:
+      'Tenant identifier. Required when a bearer token is not provided or does not include tenantId.',
     schema: { type: 'integer', minimum: 1 },
   })
   @ApiOkResponse({

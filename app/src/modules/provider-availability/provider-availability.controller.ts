@@ -40,8 +40,7 @@ export class ProviderAvailabilityController {
   @Get()
   @ApiOperation({
     summary: 'List provider availability slots',
-    description:
-      'Returns the authenticated provider’s own availability slots.',
+    description: 'Returns the authenticated provider’s own availability slots.',
   })
   @ApiOkResponse({
     description: 'Availability slots returned successfully.',
@@ -61,7 +60,8 @@ export class ProviderAvailabilityController {
     },
   })
   @ApiUnauthorizedResponse({
-    description: 'Authentication token is missing, invalid, or has invalid tenant context.',
+    description:
+      'Authentication token is missing, invalid, or has invalid tenant context.',
   })
   @ApiForbiddenResponse({
     description: 'Only providers can access availability management.',
@@ -92,7 +92,8 @@ export class ProviderAvailabilityController {
     },
   })
   @ApiUnauthorizedResponse({
-    description: 'Authentication token is missing, invalid, or has invalid tenant context.',
+    description:
+      'Authentication token is missing, invalid, or has invalid tenant context.',
   })
   @ApiForbiddenResponse({
     description: 'Only providers can create availability slots.',
@@ -128,7 +129,8 @@ export class ProviderAvailabilityController {
     description: 'Availability slot deleted successfully.',
   })
   @ApiUnauthorizedResponse({
-    description: 'Authentication token is missing, invalid, or has invalid tenant context.',
+    description:
+      'Authentication token is missing, invalid, or has invalid tenant context.',
   })
   @ApiForbiddenResponse({
     description: 'Only providers can delete availability slots.',

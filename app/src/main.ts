@@ -36,7 +36,8 @@ async function bootstrap() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        description: 'Paste a valid JWT access token returned by /api/auth/login or /api/auth/register.',
+        description:
+          'Paste a valid JWT access token returned by /api/auth/login or /api/auth/register.',
       },
       'bearer',
     )

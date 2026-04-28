@@ -30,7 +30,8 @@ export class RegisterDto {
   @ApiProperty({
     enum: ['client', 'provider'],
     example: 'client',
-    description: 'Determines whether the user registers as a client or a provider.',
+    description:
+      'Determines whether the user registers as a client or a provider.',
   })
   @IsIn(['client', 'provider'])
   accountType!: 'client' | 'provider';

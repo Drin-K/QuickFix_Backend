@@ -6,10 +6,7 @@ import { ProviderAvailabilityController } from './provider-availability.controll
 import { ProviderAvailabilityService } from './provider-availability.service';
 
 @Module({
-  imports: [
-    AuthModule,
-    TypeOrmModule.forFeature([AvailabilitySlot, Provider]),
-  ],
+  imports: [AuthModule, TypeOrmModule.forFeature([AvailabilitySlot, Provider])],
   controllers: [ProviderAvailabilityController],
   providers: [ProviderAvailabilityService],
 })

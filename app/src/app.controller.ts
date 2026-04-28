@@ -10,7 +10,8 @@ export class AppController {
   @Get()
   @ApiOperation({
     summary: 'Root endpoint',
-    description: 'Returns the default backend greeting used as a simple availability check.',
+    description:
+      'Returns the default backend greeting used as a simple availability check.',
   })
   @ApiOkResponse({
     description: 'Greeting message returned successfully.',
