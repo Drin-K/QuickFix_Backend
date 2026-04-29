@@ -11,6 +11,7 @@ import { ProviderAvailabilityModule } from './modules/provider-availability/prov
 import { ServicesModule } from './modules/services/services.module';
 import { TestConnectionModule } from './modules/test-connection/test-connection.module';
 import { UsersModule } from './modules/users/users.module';
+import { ProvidersModule } from './modules/providers/providers.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { UsersModule } from './modules/users/users.module';
     HealthModule,
     ProviderAvailabilityModule,
     TestConnectionModule,
+    ProvidersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
