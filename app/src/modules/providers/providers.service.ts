@@ -9,15 +9,25 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { RequestUser } from '../auth/jwt-auth.guard';
 import {
+  Booking,
+  BookingStatus,
+  BookingStatusHistory,
   Provider,
   ProviderCompanyDetail,
   ProviderIndividualDetail,
 } from '../shared/entities';
 import { SetupProviderDto } from './dto/setup-provider.dto';
+import { UpdateProviderBookingStatusDto } from './dto/update-provider-booking-status.dto';
 
 @Injectable()
 export class ProvidersService {
   constructor(
+    @InjectRepository(Booking)
+    private readonly bookingsRepository: Repository<Booking>,
+
+    @InjectRepository(BookingStatus)
+    private readonly bookingStatusesRepository: Repository<BookingStatus>,
+
     @InjectRepository(Provider)
     private readonly providersRepository: Repository<Provider>,
 
@@ -36,7 +46,9 @@ export class ProvidersService {
     }
 
     if (user.role !== 'provider') {
-      throw new ForbiddenException('Only providers can complete provider setup');
+      throw new ForbiddenException(
+        'Only providers can complete provider setup',
+      );
     }
 
     if (!user.tenantId) {
@@ -102,8 +114,7 @@ export class ProvidersService {
           });
 
         individualDetails.professionTitle = details.professionTitle.trim();
-        individualDetails.yearsOfExperience =
-          details.yearsOfExperience ?? null;
+        individualDetails.yearsOfExperience = details.yearsOfExperience ?? null;
         individualDetails.bio = details.bio?.trim() || null;
 
         individualDetails =
@@ -133,8 +144,7 @@ export class ProvidersService {
           });
 
         companyDetails.businessName = details.businessName.trim();
-        companyDetails.businessNumber =
-          details.businessNumber?.trim() || null;
+        companyDetails.businessNumber = details.businessNumber?.trim() || null;
         companyDetails.website = details.website?.trim() || null;
 
         companyDetails = await companyDetailsRepository.save(companyDetails);
@@ -162,5 +172,180 @@ export class ProvidersService {
         companyDetails,
       };
     });
+  }
+
+  async getProviderBookings(user: RequestUser) {
+    const provider = await this.getCurrentProvider(user);
+
+    const bookings = await this.bookingsRepository.find({
+      where: {
+        tenantId: provider.tenantId,
+        providerId: provider.id,
+      },
+      relations: {
+        clientUser: true,
+        provider: true,
+        service: true,
+        status: true,
+      },
+      order: {
+        bookingDate: 'DESC',
+        createdAt: 'DESC',
+      },
+    });
+
+    return bookings.map((booking) => this.mapBookingResponse(booking));
+  }
+
+  async updateProviderBookingStatus(
+    id: number,
+    dto: UpdateProviderBookingStatusDto,
+    user: RequestUser,
+  ) {
+    const provider = await this.getCurrentProvider(user);
+    const statusName = dto.status.trim().toLowerCase();
+
+    if (!statusName) {
+      throw new BadRequestException('Booking status is required');
+    }
+
+    const booking = await this.bookingsRepository.findOne({
+      where: {
+        id,
+        tenantId: provider.tenantId,
+        providerId: provider.id,
+      },
+      relations: {
+        clientUser: true,
+        provider: true,
+        service: true,
+        status: true,
+      },
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    if (booking.status?.name === statusName) {
+      return this.mapBookingResponse(booking);
+    }
+
+    const nextStatus = await this.findOrCreateBookingStatus(statusName);
+    const previousStatusId = booking.statusId;
+
+    const updatedBooking = await this.dataSource.transaction(
+      async (manager) => {
+        const bookingsRepository = manager.getRepository(Booking);
+        const bookingStatusHistoryRepository =
+          manager.getRepository(BookingStatusHistory);
+
+        booking.statusId = nextStatus.id;
+        booking.status = nextStatus;
+
+        await bookingsRepository.save(booking);
+
+        const historyEntry = bookingStatusHistoryRepository.create({
+          tenantId: booking.tenantId,
+          bookingId: booking.id,
+          oldStatusId: previousStatusId,
+          newStatusId: nextStatus.id,
+        });
+
+        await bookingStatusHistoryRepository.save(historyEntry);
+
+        return bookingsRepository.findOneOrFail({
+          where: {
+            id: booking.id,
+            tenantId: booking.tenantId,
+            providerId: provider.id,
+          },
+          relations: {
+            clientUser: true,
+            provider: true,
+            service: true,
+            status: true,
+          },
+        });
+      },
+    );
+
+    return this.mapBookingResponse(updatedBooking);
+  }
+
+  private async getCurrentProvider(user: RequestUser): Promise<Provider> {
+    if (user.role !== 'provider') {
+      throw new ForbiddenException('Only providers can access provider tools');
+    }
+
+    if (!user.tenantId) {
+      throw new UnauthorizedException('Invalid tenant context');
+    }
+
+    const provider = await this.providersRepository.findOne({
+      where: {
+        ownerUserId: user.id,
+        tenantId: user.tenantId,
+      },
+    });
+
+    if (!provider) {
+      throw new UnauthorizedException('Provider not found for current user');
+    }
+
+    return provider;
+  }
+
+  private async findOrCreateBookingStatus(
+    name: string,
+  ): Promise<BookingStatus> {
+    const existingStatus = await this.bookingStatusesRepository.findOne({
+      where: { name },
+    });
+
+    if (existingStatus) {
+      return existingStatus;
+    }
+
+    const status = this.bookingStatusesRepository.create({ name });
+    return this.bookingStatusesRepository.save(status);
+  }
+
+  private mapBookingResponse(booking: Booking) {
+    return {
+      id: booking.id,
+      tenantId: booking.tenantId,
+      bookingDate: booking.bookingDate,
+      totalPrice: booking.totalPrice,
+      notes: booking.notes,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+      status: booking.status
+        ? {
+            id: booking.status.id,
+            name: booking.status.name,
+          }
+        : null,
+      service: booking.service
+        ? {
+            id: booking.service.id,
+            title: booking.service.title,
+            basePrice: booking.service.basePrice,
+          }
+        : null,
+      provider: booking.provider
+        ? {
+            id: booking.provider.id,
+            displayName: booking.provider.displayName,
+          }
+        : null,
+      client: booking.clientUser
+        ? {
+            id: booking.clientUser.id,
+            fullName: booking.clientUser.fullName,
+            email: booking.clientUser.email,
+          }
+        : null,
+    };
   }
 }
