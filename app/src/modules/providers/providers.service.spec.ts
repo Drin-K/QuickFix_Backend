@@ -223,6 +223,44 @@ describe('ProvidersService', () => {
     expect(saveHistoryEntry).toHaveBeenCalled();
   });
 
+  it('does not create a history entry when the status does not change', async () => {
+    const user = { id: 7, role: 'provider', tenantId: 4 } as const;
+    const booking = {
+      id: 14,
+      tenantId: 4,
+      providerId: 22,
+      statusId: 1,
+      bookingDate: new Date('2026-05-10T14:00:00.000Z'),
+      totalPrice: '99.99',
+      notes: 'Bring tools',
+      createdAt: new Date('2026-04-23T16:45:00.000Z'),
+      updatedAt: new Date('2026-04-23T16:45:00.000Z'),
+      status: { id: 1, name: 'pending' },
+      service: { id: 12, title: 'Pipe Repair', basePrice: '99.99' },
+      provider: { id: 22, displayName: 'QuickFix Plumbing' },
+      clientUser: {
+        id: 31,
+        fullName: 'Jane Client',
+        email: 'jane@example.com',
+      },
+    };
+
+    providersRepository.findOne.mockResolvedValue({ id: 22, tenantId: 4 });
+    bookingsRepository.findOne.mockResolvedValue(booking);
+
+    await expect(
+      service.updateProviderBookingStatus(14, { status: ' pending ' }, user),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        id: 14,
+        status: { id: 1, name: 'pending' },
+      }),
+    );
+
+    expect(dataSource.transaction).not.toHaveBeenCalled();
+    expect(bookingStatusesRepository.findOne).not.toHaveBeenCalled();
+  });
+
   it('rejects empty booking statuses', async () => {
     const user = { id: 7, role: 'provider', tenantId: 4 } as const;
     providersRepository.findOne.mockResolvedValue({ id: 22, tenantId: 4 });
