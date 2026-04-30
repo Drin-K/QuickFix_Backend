@@ -39,7 +39,7 @@ import {
 
 @ApiTags('Provider Documents')
 @ApiBearerAuth('bearer')
-@Controller(['providers/me/documents', 'provider-documents'])
+@Controller('providers/me/documents')
 @UseGuards(JwtAuthGuard)
 export class ProviderDocumentsController {
   constructor(
