@@ -55,10 +55,28 @@ describe('ProviderDocumentsService', () => {
   });
 
   afterEach(async () => {
-    await rm(join(process.cwd(), 'uploads', 'provider-documents'), {
-      force: true,
-      recursive: true,
-    });
+    await rm(
+      join(
+        process.cwd(),
+        'uploads',
+        'provider-documents',
+        'Vertetim Bankar.png',
+      ),
+      {
+        force: true,
+      },
+    );
+    await rm(
+      join(
+        process.cwd(),
+        'uploads',
+        'provider-documents',
+        'Vertetim Bankar-1.png',
+      ),
+      {
+        force: true,
+      },
+    );
   });
 
   it('uploads a document linked to the authenticated provider', async () => {
