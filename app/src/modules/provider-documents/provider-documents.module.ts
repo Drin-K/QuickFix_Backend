@@ -6,10 +6,7 @@ import { ProviderDocumentsController } from './provider-documents.controller';
 import { ProviderDocumentsService } from './provider-documents.service';
 
 @Module({
-  imports: [
-    AuthModule,
-    TypeOrmModule.forFeature([Provider, ProviderDocument]),
-  ],
+  imports: [AuthModule, TypeOrmModule.forFeature([Provider, ProviderDocument])],
   controllers: [ProviderDocumentsController],
   providers: [ProviderDocumentsService],
 })

@@ -44,15 +44,12 @@ export class ProviderDocumentsService {
       isVerified: false,
     });
 
-    const savedDocument =
-      await this.providerDocumentsRepository.save(document);
+    const savedDocument = await this.providerDocumentsRepository.save(document);
 
     return this.mapDocument(savedDocument);
   }
 
-  async listDocuments(
-    user: RequestUser,
-  ): Promise<ProviderDocumentResponse[]> {
+  async listDocuments(user: RequestUser): Promise<ProviderDocumentResponse[]> {
     const provider = await this.getCurrentProvider(user);
 
     const documents = await this.providerDocumentsRepository.find({

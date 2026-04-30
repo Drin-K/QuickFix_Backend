@@ -181,7 +181,17 @@ describe('ProvidersService', () => {
     providersRepository.findOne.mockResolvedValue({ id: 22, tenantId: 4 });
     bookingsRepository.findOne.mockResolvedValue(booking);
     bookingStatusesRepository.findOne.mockResolvedValue(nextStatus);
-    dataSource.transaction.mockImplementation(async (callback: any) =>
+    type TestEntityManager = {
+      getRepository: (entity: unknown) => {
+        save?: jest.Mock;
+        findOneOrFail?: jest.Mock;
+        create?: jest.Mock;
+      };
+    };
+
+    type TransactionCallback = (manager: TestEntityManager) => Promise<unknown>;
+
+    dataSource.transaction.mockImplementation((callback: TransactionCallback) =>
       callback({
         getRepository: (entity: unknown) => {
           if (entity === Booking) {
