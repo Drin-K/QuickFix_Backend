@@ -1,6 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import express from 'express';
+import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -17,6 +19,8 @@ async function bootstrap() {
     ],
     credentials: true,
   });
+
+  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(

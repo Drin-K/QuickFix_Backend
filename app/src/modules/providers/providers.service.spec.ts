@@ -144,6 +144,45 @@ describe('ProvidersService', () => {
     );
   });
 
+  it('returns verification status for the authenticated provider', async () => {
+    const user = { id: 7, role: 'provider', tenantId: 4 } as const;
+    providersRepository.findOne.mockResolvedValue({
+      id: 22,
+      tenantId: 4,
+      isVerified: true,
+    });
+
+    await expect(service.getVerificationStatus(user)).resolves.toEqual({
+      providerId: 22,
+      tenantId: 4,
+      isVerified: true,
+      status: 'verified',
+    });
+
+    expect(providersRepository.findOne).toHaveBeenCalledWith({
+      where: {
+        ownerUserId: 7,
+        tenantId: 4,
+      },
+    });
+  });
+
+  it('returns pending verification status for unverified providers', async () => {
+    const user = { id: 7, role: 'provider', tenantId: 4 } as const;
+    providersRepository.findOne.mockResolvedValue({
+      id: 22,
+      tenantId: 4,
+      isVerified: false,
+    });
+
+    await expect(service.getVerificationStatus(user)).resolves.toEqual({
+      providerId: 22,
+      tenantId: 4,
+      isVerified: false,
+      status: 'pending',
+    });
+  });
+
   it('updates a provider booking status and records history', async () => {
     const user = { id: 7, role: 'provider', tenantId: 4 } as const;
     const booking = {

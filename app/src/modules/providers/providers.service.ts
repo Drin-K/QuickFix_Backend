@@ -19,6 +19,13 @@ import {
 import { SetupProviderDto } from './dto/setup-provider.dto';
 import { UpdateProviderBookingStatusDto } from './dto/update-provider-booking-status.dto';
 
+type ProviderVerificationStatusResponse = {
+  providerId: number;
+  tenantId: number;
+  isVerified: boolean;
+  status: 'verified' | 'pending';
+};
+
 @Injectable()
 export class ProvidersService {
   constructor(
@@ -195,6 +202,19 @@ export class ProvidersService {
     });
 
     return bookings.map((booking) => this.mapBookingResponse(booking));
+  }
+
+  async getVerificationStatus(
+    user: RequestUser,
+  ): Promise<ProviderVerificationStatusResponse> {
+    const provider = await this.getCurrentProvider(user);
+
+    return {
+      providerId: provider.id,
+      tenantId: provider.tenantId,
+      isVerified: provider.isVerified,
+      status: provider.isVerified ? 'verified' : 'pending',
+    };
   }
 
   async updateProviderBookingStatus(
