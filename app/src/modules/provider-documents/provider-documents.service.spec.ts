@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { rm } from 'fs/promises';
+import { join } from 'path';
 import type { RequestUser } from '../auth/jwt-auth.guard';
 import { Provider, ProviderDocument } from '../shared/entities';
 import { ProviderDocumentsService } from './provider-documents.service';
@@ -52,6 +54,13 @@ describe('ProviderDocumentsService', () => {
     service = moduleRef.get(ProviderDocumentsService);
   });
 
+  afterEach(async () => {
+    await rm(join(process.cwd(), 'uploads', 'provider-documents'), {
+      force: true,
+      recursive: true,
+    });
+  });
+
   it('uploads a document linked to the authenticated provider', async () => {
     const user: RequestUser = { id: 7, role: 'provider', tenantId: 4 };
     const createdAt = new Date('2026-04-30T12:00:00.000Z');
@@ -83,6 +92,7 @@ describe('ProviderDocumentsService', () => {
       providerId: 22,
       documentType: 'business_license',
       fileUrl: 'https://cdn.example.com/license.pdf',
+      submittedAt: createdAt,
       isVerified: false,
       createdAt,
     });
@@ -94,6 +104,52 @@ describe('ProviderDocumentsService', () => {
       fileUrl: 'https://cdn.example.com/license.pdf',
       isVerified: false,
     });
+  });
+
+  it('stores uploaded files using the original file name', async () => {
+    const user: RequestUser = { id: 7, role: 'provider', tenantId: 4 };
+    const createdAt = new Date('2026-04-30T12:00:00.000Z');
+
+    providersRepository.findOne.mockResolvedValue({ id: 22, tenantId: 4 });
+    providerDocumentsRepository.create.mockImplementation(
+      (value: Partial<ProviderDocument>) => value,
+    );
+    providerDocumentsRepository.save.mockImplementation(
+      (value: Partial<ProviderDocument>) =>
+        Promise.resolve({
+          id: 9,
+          createdAt,
+          ...value,
+        }),
+    );
+
+    await expect(
+      service.uploadDocument(
+        {
+          documentType: 'bank_statement',
+        },
+        user,
+        {
+          buffer: Buffer.from('fake-png'),
+          originalname: 'Vertetim Bankar.png',
+          mimetype: 'image/png',
+          size: 8,
+        },
+        'http://localhost:3001',
+      ),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        fileUrl:
+          'http://localhost:3001/uploads/provider-documents/Vertetim%20Bankar.png',
+      }),
+    );
+
+    expect(providerDocumentsRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fileUrl:
+          'http://localhost:3001/uploads/provider-documents/Vertetim%20Bankar.png',
+      }),
+    );
   });
 
   it('lists only documents owned by the authenticated provider', async () => {
@@ -120,6 +176,7 @@ describe('ProviderDocumentsService', () => {
         providerId: 22,
         documentType: 'business_license',
         fileUrl: 'https://cdn.example.com/license.pdf',
+        submittedAt: createdAt,
         isVerified: false,
         createdAt,
       },

@@ -48,6 +48,10 @@ describe('ProviderDocumentsController', () => {
 
   it('uploads a document for the authenticated provider', async () => {
     const user = { id: 3, role: 'provider', tenantId: 5 } as const;
+    const request = {
+      protocol: 'http',
+      get: jest.fn().mockReturnValue('localhost:3001'),
+    } as const;
     const dto = {
       documentType: 'business_license',
       fileUrl: 'https://cdn.example.com/license.pdf',
@@ -55,12 +59,16 @@ describe('ProviderDocumentsController', () => {
 
     providerDocumentsService.uploadDocument.mockResolvedValue({ id: 1 });
 
-    await expect(controller.uploadDocument(dto, user)).resolves.toEqual({
+    await expect(
+      controller.uploadDocument(dto, user, undefined, request as never),
+    ).resolves.toEqual({
       id: 1,
     });
     expect(providerDocumentsService.uploadDocument).toHaveBeenCalledWith(
       dto,
       user,
+      undefined,
+      'http://localhost:3001',
     );
   });
 

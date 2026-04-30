@@ -1,5 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUrl, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  MaxLength,
+} from 'class-validator';
 
 export class UploadProviderDocumentDto {
   @ApiProperty({
@@ -14,11 +20,22 @@ export class UploadProviderDocumentDto {
 
   @ApiProperty({
     description:
-      'URL returned by the upload storage flow for this verification document.',
+      'URL returned by the upload storage flow for this verification document. Required for JSON requests. Multipart requests can send a file instead.',
     example: 'https://cdn.example.com/provider-documents/license.pdf',
   })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
   @IsUrl({ require_tld: false })
-  fileUrl!: string;
+  fileUrl?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Optional original file name. This is usually set automatically for multipart uploads.',
+    example: 'license.pdf',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  fileName?: string;
 }

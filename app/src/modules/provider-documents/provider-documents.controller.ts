@@ -8,8 +8,12 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Req,
+  UploadedFile,
+  UseInterceptors,
   UseGuards,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -20,17 +24,22 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiConsumes,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard, RequestUser } from '../auth/jwt-auth.guard';
 import { UploadProviderDocumentDto } from './dto/upload-provider-document.dto';
-import { ProviderDocumentsService } from './provider-documents.service';
+import {
+  ProviderDocumentsService,
+  UploadedProviderDocumentFile,
+} from './provider-documents.service';
 
 @ApiTags('Provider Documents')
 @ApiBearerAuth('bearer')
-@Controller('providers/me/documents')
+@Controller(['providers/me/documents', 'provider-documents'])
 @UseGuards(JwtAuthGuard)
 export class ProviderDocumentsController {
   constructor(
@@ -41,9 +50,30 @@ export class ProviderDocumentsController {
   @ApiOperation({
     summary: 'Upload provider verification document',
     description:
-      'Creates a verification document record for the authenticated provider.',
+      'Creates a verification document record for the authenticated provider. Supports multipart file uploads from the frontend and JSON requests with fileUrl.',
   })
-  @ApiBody({ type: UploadProviderDocumentDto })
+  @ApiConsumes('multipart/form-data', 'application/json')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['documentType'],
+      properties: {
+        documentType: {
+          type: 'string',
+          example: 'business_license',
+        },
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+        fileUrl: {
+          type: 'string',
+          example: 'https://cdn.example.com/provider-documents/license.pdf',
+        },
+      },
+    },
+  })
   @ApiCreatedResponse({
     description: 'Provider document uploaded successfully.',
     schema: {
@@ -53,6 +83,7 @@ export class ProviderDocumentsController {
         providerId: 5,
         documentType: 'business_license',
         fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
+        submittedAt: '2026-04-30T12:00:00.000Z',
         isVerified: false,
         createdAt: '2026-04-30T12:00:00.000Z',
       },
@@ -68,8 +99,15 @@ export class ProviderDocumentsController {
   uploadDocument(
     @Body() dto: UploadProviderDocumentDto,
     @CurrentUser() user: RequestUser,
+    @UploadedFile() file: UploadedProviderDocumentFile | undefined,
+    @Req() request: Request,
   ) {
-    return this.providerDocumentsService.uploadDocument(dto, user);
+    return this.providerDocumentsService.uploadDocument(
+      dto,
+      user,
+      file,
+      `${request.protocol}://${request.get('host')}`,
+    );
   }
 
   @Get()
@@ -88,6 +126,7 @@ export class ProviderDocumentsController {
           providerId: 5,
           documentType: 'business_license',
           fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
+          submittedAt: '2026-04-30T12:00:00.000Z',
           isVerified: false,
           createdAt: '2026-04-30T12:00:00.000Z',
         },
