@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -10,6 +10,7 @@ import {
 import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard, RequestUser } from '../auth/jwt-auth.guard';
 import { SetupProviderDto } from './dto/setup-provider.dto';
+import { UpdateProviderDto } from './dto/update-provider.dto';
 import { ProvidersService } from './providers.service';
 
 @ApiTags('Providers')
@@ -18,6 +19,19 @@ import { ProvidersService } from './providers.service';
 @UseGuards(JwtAuthGuard)
 export class ProvidersController {
   constructor(private readonly providersService: ProvidersService) {}
+
+  @Get('me')
+  getMe(@CurrentUser() user: RequestUser) {
+    return this.providersService.getMe(user);
+  }
+
+  @Put('me')
+  updateMe(
+    @CurrentUser() user: RequestUser,
+    @Body() dto: UpdateProviderDto,
+  ) {
+    return this.providersService.updateMe(user, dto);
+  }
 
   @Post('setup')
   setupProvider(

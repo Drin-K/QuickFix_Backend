@@ -18,6 +18,7 @@ import {
 } from '../shared/entities';
 import { SetupProviderDto } from './dto/setup-provider.dto';
 import { UpdateProviderBookingStatusDto } from './dto/update-provider-booking-status.dto';
+import { UpdateProviderDto } from './dto/update-provider.dto';
 
 type ProviderVerificationStatusResponse = {
   providerId: number;
@@ -181,6 +182,164 @@ export class ProvidersService {
     });
   }
 
+  async getMe(user: RequestUser) {
+    const provider = await this.getCurrentProviderWithDetails(user);
+
+    return this.mapProviderProfile(provider);
+  }
+
+  async updateMe(user: RequestUser, dto: UpdateProviderDto) {
+    const provider = await this.getCurrentProviderWithDetails(user);
+    const tenantId = provider.tenantId;
+    const nextType = dto.type ?? provider.type;
+
+    const updatedProvider = await this.dataSource.transaction(
+      async (manager) => {
+        const providersRepository = manager.getRepository(Provider);
+        const individualDetailsRepository = manager.getRepository(
+          ProviderIndividualDetail,
+        );
+        const companyDetailsRepository = manager.getRepository(
+          ProviderCompanyDetail,
+        );
+
+        if (dto.type) {
+          provider.type = dto.type;
+        }
+
+        if (dto.displayName !== undefined) {
+          provider.displayName = dto.displayName.trim();
+        }
+
+        if (dto.description !== undefined) {
+          provider.description = dto.description?.trim() || null;
+        }
+
+        if (dto.cityId !== undefined) {
+          provider.cityId = dto.cityId ?? null;
+        }
+
+        if (dto.address !== undefined) {
+          provider.address = dto.address?.trim() || null;
+        }
+
+        await providersRepository.save(provider);
+
+        if (nextType === 'individual') {
+          let individualDetails =
+            await individualDetailsRepository.findOne({
+              where: {
+                providerId: provider.id,
+                tenantId,
+              },
+            });
+
+          if (dto.individualDetails || dto.type === 'individual') {
+            if (!individualDetails) {
+              if (!dto.individualDetails?.professionTitle) {
+                throw new BadRequestException(
+                  'Profession title is required',
+                );
+              }
+
+              individualDetails = individualDetailsRepository.create({
+                tenantId,
+                providerId: provider.id,
+                professionTitle: dto.individualDetails.professionTitle.trim(),
+                yearsOfExperience:
+                  dto.individualDetails.yearsOfExperience ?? null,
+                bio: dto.individualDetails.bio?.trim() || null,
+              });
+            } else if (dto.individualDetails) {
+              if (dto.individualDetails.professionTitle !== undefined) {
+                individualDetails.professionTitle =
+                  dto.individualDetails.professionTitle.trim();
+              }
+
+              if (dto.individualDetails.yearsOfExperience !== undefined) {
+                individualDetails.yearsOfExperience =
+                  dto.individualDetails.yearsOfExperience ?? null;
+              }
+
+              if (dto.individualDetails.bio !== undefined) {
+                individualDetails.bio =
+                  dto.individualDetails.bio?.trim() || null;
+              }
+            }
+
+            await individualDetailsRepository.save(individualDetails);
+          }
+
+          await companyDetailsRepository.delete({
+            providerId: provider.id,
+            tenantId,
+          });
+        }
+
+        if (nextType === 'company') {
+          let companyDetails = await companyDetailsRepository.findOne({
+            where: {
+              providerId: provider.id,
+              tenantId,
+            },
+          });
+
+          if (dto.companyDetails || dto.type === 'company') {
+            if (!companyDetails) {
+              if (!dto.companyDetails?.businessName) {
+                throw new BadRequestException('Business name is required');
+              }
+
+              companyDetails = companyDetailsRepository.create({
+                tenantId,
+                providerId: provider.id,
+                businessName: dto.companyDetails.businessName.trim(),
+                businessNumber:
+                  dto.companyDetails.businessNumber?.trim() || null,
+                website: dto.companyDetails.website?.trim() || null,
+              });
+            } else if (dto.companyDetails) {
+              if (dto.companyDetails.businessName !== undefined) {
+                companyDetails.businessName =
+                  dto.companyDetails.businessName.trim();
+              }
+
+              if (dto.companyDetails.businessNumber !== undefined) {
+                companyDetails.businessNumber =
+                  dto.companyDetails.businessNumber?.trim() || null;
+              }
+
+              if (dto.companyDetails.website !== undefined) {
+                companyDetails.website =
+                  dto.companyDetails.website?.trim() || null;
+              }
+            }
+
+            await companyDetailsRepository.save(companyDetails);
+          }
+
+          await individualDetailsRepository.delete({
+            providerId: provider.id,
+            tenantId,
+          });
+        }
+
+        return providersRepository.findOneOrFail({
+          where: {
+            id: provider.id,
+            tenantId,
+          },
+          relations: {
+            individualDetails: true,
+            companyDetails: true,
+          },
+        });
+      },
+    );
+
+    return this.mapProviderProfile(updatedProvider);
+  }
+
   async getProviderBookings(user: RequestUser) {
     const provider = await this.getCurrentProvider(user);
 
@@ -314,6 +473,81 @@ export class ProvidersService {
     }
 
     return provider;
+  }
+
+  private async getCurrentProviderWithDetails(
+    user: RequestUser,
+  ): Promise<Provider> {
+    if (user.role !== 'provider') {
+      throw new ForbiddenException('Only providers can access provider tools');
+    }
+
+    if (!user.tenantId) {
+      throw new UnauthorizedException('Invalid tenant context');
+    }
+
+    const provider = await this.providersRepository.findOne({
+      where: {
+        ownerUserId: user.id,
+        tenantId: user.tenantId,
+      },
+      relations: {
+        individualDetails: true,
+        companyDetails: true,
+      },
+    });
+
+    if (!provider) {
+      throw new UnauthorizedException('Provider not found for current user');
+    }
+
+    return provider;
+  }
+
+  private mapProviderProfile(provider: Provider) {
+    return {
+      provider: {
+        id: provider.id,
+        tenantId: provider.tenantId,
+        ownerUserId: provider.ownerUserId,
+        type: provider.type,
+        displayName: provider.displayName,
+        description: provider.description,
+        cityId: provider.cityId,
+        address: provider.address,
+        isVerified: provider.isVerified,
+        averageRating: provider.averageRating,
+        createdAt: provider.createdAt,
+        updatedAt: provider.updatedAt,
+      },
+      individualDetails:
+        provider.type === 'individual' && provider.individualDetails
+          ? {
+              id: provider.individualDetails.id,
+              tenantId: provider.individualDetails.tenantId,
+              providerId: provider.individualDetails.providerId,
+              professionTitle: provider.individualDetails.professionTitle,
+              yearsOfExperience:
+                provider.individualDetails.yearsOfExperience,
+              bio: provider.individualDetails.bio,
+              createdAt: provider.individualDetails.createdAt,
+              updatedAt: provider.individualDetails.updatedAt,
+            }
+          : null,
+      companyDetails:
+        provider.type === 'company' && provider.companyDetails
+          ? {
+              id: provider.companyDetails.id,
+              tenantId: provider.companyDetails.tenantId,
+              providerId: provider.companyDetails.providerId,
+              businessName: provider.companyDetails.businessName,
+              businessNumber: provider.companyDetails.businessNumber,
+              website: provider.companyDetails.website,
+              createdAt: provider.companyDetails.createdAt,
+              updatedAt: provider.companyDetails.updatedAt,
+            }
+          : null,
+    };
   }
 
   private async findOrCreateBookingStatus(
