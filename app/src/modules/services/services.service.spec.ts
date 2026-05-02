@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Service } from '../shared/entities';
+import { DataSource, Repository } from 'typeorm';
+import { Category, Provider, Service } from '../shared/entities';
 import { ServicesService } from './services.service';
 
 describe('ServicesService', () => {
@@ -17,6 +17,25 @@ describe('ServicesService', () => {
           useValue: {
             find: jest.fn(),
             findOne: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Provider),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Category),
+          useValue: {
+            exists: jest.fn(),
+          },
+        },
+        {
+          provide: DataSource,
+          useValue: {
+            transaction: jest.fn(),
           },
         },
       ],
