@@ -1,12 +1,37 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
+import { RequestUser } from '../auth/jwt-auth.guard';
 import { Category, Provider, Service } from '../shared/entities';
 import { ServicesService } from './services.service';
 
 describe('ServicesService', () => {
   let service: ServicesService;
   let repository: jest.Mocked<Repository<Service>>;
+  let providersRepository: jest.Mocked<Repository<Provider>>;
+  let categoriesRepository: jest.Mocked<Repository<Category>>;
+  let dataSource: jest.Mocked<DataSource>;
+
+  const providerUser: RequestUser = {
+    id: 7,
+    email: 'provider@test.com',
+    role: 'provider',
+    tenantId: 12,
+  };
+
+  const buildProvider = (isVerified: boolean): Provider =>
+    ({
+      id: 9,
+      tenantId: 12,
+      ownerUserId: providerUser.id,
+      type: 'individual',
+      displayName: 'QuickFix HVAC',
+      description: 'Certified technicians',
+      cityId: null,
+      address: null,
+      isVerified,
+      averageRating: null,
+    }) as Provider;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,6 +68,9 @@ describe('ServicesService', () => {
 
     service = module.get<ServicesService>(ServicesService);
     repository = module.get(getRepositoryToken(Service));
+    providersRepository = module.get(getRepositoryToken(Provider));
+    categoriesRepository = module.get(getRepositoryToken(Category));
+    dataSource = module.get(DataSource);
   });
 
   it('returns active tenant services mapped for list pages', async () => {
@@ -119,5 +147,44 @@ describe('ServicesService', () => {
         },
       },
     ]);
+  });
+
+  it('rejects provider service creation when provider is not verified', async () => {
+    providersRepository.findOne.mockResolvedValue(buildProvider(false));
+
+    await expect(
+      service.createProviderService(providerUser, {
+        categoryId: 2,
+        title: 'AC Repair',
+        basePrice: 49.99,
+      }),
+    ).rejects.toThrow(
+      'Provider verification is required before creating or publishing services.',
+    );
+
+    expect(categoriesRepository.exists).not.toHaveBeenCalled();
+    expect(dataSource.transaction).not.toHaveBeenCalled();
+  });
+
+  it('rejects publishing a provider service when provider is not verified', async () => {
+    providersRepository.findOne.mockResolvedValue(buildProvider(false));
+    repository.findOne.mockResolvedValue({
+      id: 5,
+      tenantId: 12,
+      providerId: 9,
+      isActive: false,
+      images: [],
+    } as Service);
+
+    await expect(
+      service.updateProviderService(5, providerUser, {
+        isActive: true,
+      }),
+    ).rejects.toThrow(
+      'Provider verification is required before creating or publishing services.',
+    );
+
+    expect(categoriesRepository.exists).not.toHaveBeenCalled();
+    expect(dataSource.transaction).not.toHaveBeenCalled();
   });
 });
