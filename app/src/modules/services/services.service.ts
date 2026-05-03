@@ -174,6 +174,7 @@ export class ServicesService {
     dto: CreateProviderServiceDto,
   ) {
     const provider = await this.getCurrentProvider(user);
+    this.ensureProviderCanPublishServices(provider);
     await this.ensureCategoryExists(dto.categoryId);
 
     const service = await this.dataSource.transaction(async (manager) => {
@@ -232,6 +233,10 @@ export class ServicesService {
   ) {
     const provider = await this.getCurrentProvider(user);
     const service = await this.getOwnedProviderService(id, provider);
+
+    if (dto.isActive === true) {
+      this.ensureProviderCanPublishServices(provider);
+    }
 
     if (dto.categoryId !== undefined) {
       await this.ensureCategoryExists(dto.categoryId);
@@ -386,6 +391,14 @@ export class ServicesService {
 
     if (!exists) {
       throw new BadRequestException('Category does not exist');
+    }
+  }
+
+  private ensureProviderCanPublishServices(provider: Provider): void {
+    if (!provider.isVerified) {
+      throw new ForbiddenException(
+        'Provider verification is required before creating or publishing services. Complete provider setup and document verification first.',
+      );
     }
   }
 
