@@ -226,20 +226,17 @@ export class ProvidersService {
         await providersRepository.save(provider);
 
         if (nextType === 'individual') {
-          let individualDetails =
-            await individualDetailsRepository.findOne({
-              where: {
-                providerId: provider.id,
-                tenantId,
-              },
-            });
+          let individualDetails = await individualDetailsRepository.findOne({
+            where: {
+              providerId: provider.id,
+              tenantId,
+            },
+          });
 
           if (dto.individualDetails || dto.type === 'individual') {
             if (!individualDetails) {
               if (!dto.individualDetails?.professionTitle) {
-                throw new BadRequestException(
-                  'Profession title is required',
-                );
+                throw new BadRequestException('Profession title is required');
               }
 
               individualDetails = individualDetailsRepository.create({
@@ -527,8 +524,7 @@ export class ProvidersService {
               tenantId: provider.individualDetails.tenantId,
               providerId: provider.individualDetails.providerId,
               professionTitle: provider.individualDetails.professionTitle,
-              yearsOfExperience:
-                provider.individualDetails.yearsOfExperience,
+              yearsOfExperience: provider.individualDetails.yearsOfExperience,
               bio: provider.individualDetails.bio,
               createdAt: provider.individualDetails.createdAt,
               updatedAt: provider.individualDetails.updatedAt,

@@ -7,7 +7,10 @@ import { ServicesController } from './services.controller';
 import { ServicesService } from './services.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Category, Provider, Service]), AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([Category, Provider, Service]),
+    AuthModule,
+  ],
   controllers: [ServicesController, ProviderServicesController],
   providers: [ServicesService],
   exports: [ServicesService],
