@@ -199,14 +199,14 @@ describe('ServicesService', () => {
       ],
     });
 
-    expect(repository.find).toHaveBeenCalledWith(
+    expect(repository.find.mock.calls[0]).toEqual([
       expect.objectContaining({
         where: {
           tenantId: 12,
           providerId: 9,
         },
       }),
-    );
+    ]);
   });
 
   it('returns one owned provider service for editing', async () => {
@@ -232,14 +232,16 @@ describe('ServicesService', () => {
       images: [],
     } as unknown as Service);
 
-    await expect(service.getMyProviderService(5, providerUser)).resolves.toEqual(
+    await expect(
+      service.getMyProviderService(5, providerUser),
+    ).resolves.toEqual(
       expect.objectContaining({
         id: 5,
         title: 'AC Repair',
       }),
     );
 
-    expect(repository.findOne).toHaveBeenCalledWith(
+    expect(repository.findOne.mock.calls[0]).toEqual([
       expect.objectContaining({
         where: {
           id: 5,
@@ -247,7 +249,7 @@ describe('ServicesService', () => {
           providerId: 9,
         },
       }),
-    );
+    ]);
   });
 
   it('rejects publishing a provider service when provider is not verified', async () => {
