@@ -151,7 +151,6 @@ export class ServicesService {
       where: {
         tenantId: provider.tenantId,
         providerId: provider.id,
-        isActive: true,
       },
       relations: {
         category: true,
@@ -169,6 +168,13 @@ export class ServicesService {
     return {
       services: services.map((service) => this.mapServiceListItem(service)),
     };
+  }
+
+  async getMyProviderService(id: number, user: RequestUser) {
+    const provider = await this.getCurrentProvider(user);
+    const service = await this.getOwnedProviderService(id, provider);
+
+    return this.mapProviderServiceResponse(service);
   }
 
   async createProviderService(

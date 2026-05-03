@@ -23,8 +23,10 @@ describe('ProviderDocumentsService', () => {
   let providersRepository: {
     findOne: jest.Mock;
   };
+  let uploadedTestFileNames: string[];
 
   beforeEach(async () => {
+    uploadedTestFileNames = [];
     providerDocumentsRepository = {
       find: jest.fn(),
       findOne: jest.fn(),
@@ -55,27 +57,19 @@ describe('ProviderDocumentsService', () => {
   });
 
   afterEach(async () => {
-    await rm(
-      join(
-        process.cwd(),
-        'uploads',
-        'provider-documents',
-        'Vertetim Bankar.png',
-      ),
-      {
-        force: true,
-      },
+    const uploadDirectory = join(
+      process.cwd(),
+      'uploads',
+      'provider-documents',
     );
-    await rm(
-      join(
-        process.cwd(),
-        'uploads',
-        'provider-documents',
-        'Vertetim Bankar-1.png',
-      ),
-      {
-        force: true,
-      },
+
+    await Promise.allSettled(
+      uploadedTestFileNames.flatMap((fileName) => [
+        rm(join(uploadDirectory, fileName), { force: true }),
+        rm(join(uploadDirectory, fileName.replace(/(\.[^.]+)$/, '-1$1')), {
+          force: true,
+        }),
+      ]),
     );
   });
 
@@ -127,6 +121,9 @@ describe('ProviderDocumentsService', () => {
   it('stores uploaded files using the original file name', async () => {
     const user: RequestUser = { id: 7, role: 'provider', tenantId: 4 };
     const createdAt = new Date('2026-04-30T12:00:00.000Z');
+    const originalName = `Vertetim Bankar Spec ${Date.now()}.png`;
+    const expectedFileUrl = `http://localhost:3001/uploads/provider-documents/${encodeURIComponent(originalName)}`;
+    uploadedTestFileNames.push(originalName);
 
     providersRepository.findOne.mockResolvedValue({ id: 22, tenantId: 4 });
     providerDocumentsRepository.create.mockImplementation(
@@ -149,7 +146,7 @@ describe('ProviderDocumentsService', () => {
         user,
         {
           buffer: Buffer.from('fake-png'),
-          originalname: 'Vertetim Bankar.png',
+          originalname: originalName,
           mimetype: 'image/png',
           size: 8,
         },
@@ -157,15 +154,13 @@ describe('ProviderDocumentsService', () => {
       ),
     ).resolves.toEqual(
       expect.objectContaining({
-        fileUrl:
-          'http://localhost:3001/uploads/provider-documents/Vertetim%20Bankar.png',
+        fileUrl: expectedFileUrl,
       }),
     );
 
     expect(providerDocumentsRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        fileUrl:
-          'http://localhost:3001/uploads/provider-documents/Vertetim%20Bankar.png',
+        fileUrl: expectedFileUrl,
       }),
     );
   });

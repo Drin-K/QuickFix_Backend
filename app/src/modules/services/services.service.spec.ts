@@ -14,7 +14,6 @@ describe('ServicesService', () => {
 
   const providerUser: RequestUser = {
     id: 7,
-    email: 'provider@test.com',
     role: 'provider',
     tenantId: 12,
   };
@@ -166,6 +165,91 @@ describe('ServicesService', () => {
     expect(dataSource.transaction.mock.calls).toHaveLength(0);
   });
 
+  it('returns active and inactive provider services for management', async () => {
+    providersRepository.findOne.mockResolvedValue(buildProvider(true));
+    repository.find.mockResolvedValue([
+      {
+        id: 5,
+        tenantId: 12,
+        title: 'AC Repair',
+        description: 'Fixing AC units',
+        basePrice: '49.99',
+        isActive: false,
+        createdAt: new Date('2026-04-20T10:00:00.000Z'),
+        updatedAt: new Date('2026-04-21T10:00:00.000Z'),
+        category: {
+          id: 2,
+          name: 'HVAC',
+        },
+        provider: {
+          id: 9,
+          displayName: 'QuickFix HVAC',
+          description: 'Certified technicians',
+        },
+        images: [],
+      },
+    ] as unknown as Service[]);
+
+    await expect(service.getMyProviderServices(providerUser)).resolves.toEqual({
+      services: [
+        expect.objectContaining({
+          id: 5,
+          isActive: false,
+        }),
+      ],
+    });
+
+    expect(repository.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          tenantId: 12,
+          providerId: 9,
+        },
+      }),
+    );
+  });
+
+  it('returns one owned provider service for editing', async () => {
+    providersRepository.findOne.mockResolvedValue(buildProvider(true));
+    repository.findOne.mockResolvedValue({
+      id: 5,
+      tenantId: 12,
+      title: 'AC Repair',
+      description: 'Fixing AC units',
+      basePrice: '49.99',
+      isActive: true,
+      createdAt: new Date('2026-04-20T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-21T10:00:00.000Z'),
+      category: {
+        id: 2,
+        name: 'HVAC',
+      },
+      provider: {
+        id: 9,
+        displayName: 'QuickFix HVAC',
+        description: 'Certified technicians',
+      },
+      images: [],
+    } as unknown as Service);
+
+    await expect(service.getMyProviderService(5, providerUser)).resolves.toEqual(
+      expect.objectContaining({
+        id: 5,
+        title: 'AC Repair',
+      }),
+    );
+
+    expect(repository.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          id: 5,
+          tenantId: 12,
+          providerId: 9,
+        },
+      }),
+    );
+  });
+
   it('rejects publishing a provider service when provider is not verified', async () => {
     providersRepository.findOne.mockResolvedValue(buildProvider(false));
     repository.findOne.mockResolvedValue({
@@ -174,7 +258,7 @@ describe('ServicesService', () => {
       providerId: 9,
       isActive: false,
       images: [],
-    } as Service);
+    } as unknown as Service);
 
     await expect(
       service.updateProviderService(5, providerUser, {

@@ -2,8 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { AvailabilitySlot } from './availability-slot.entity';
 import { Booking } from './booking.entity';
@@ -19,17 +22,34 @@ import { Review } from './review.entity';
 import { Service } from './service.entity';
 import { ServiceImage } from './service-image.entity';
 import { ServiceTagMap } from './service-tag-map.entity';
+import { User } from './user.entity';
 
 @Entity({ name: 'tenants' })
 export class Tenant {
   @PrimaryGeneratedColumn({ type: 'int' })
   id!: number;
 
-  @Column({ type: 'varchar', length: 255, unique: true })
+  @Column({ type: 'varchar', length: 255 })
   name!: string;
+
+  @Column({ type: 'varchar', length: 255, unique: true })
+  slug!: string;
+
+  @Column({ name: 'owner_user_id', type: 'int', unique: true })
+  ownerUserId!: number;
+
+  @Column({ name: 'is_active', type: 'boolean', default: true })
+  isActive!: boolean;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamp' })
   createdAt!: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
+  updatedAt!: Date;
+
+  @OneToOne(() => User, { onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'owner_user_id' })
+  ownerUser!: User;
 
   @OneToMany(() => Provider, (provider) => provider.tenant)
   providers!: Provider[];
