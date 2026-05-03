@@ -142,7 +142,9 @@ export class ServicesService {
     };
   }
 
-  async getMyProviderServices(user: RequestUser): Promise<ServicesListResponse> {
+  async getMyProviderServices(
+    user: RequestUser,
+  ): Promise<ServicesListResponse> {
     const provider = await this.getCurrentProvider(user);
 
     const services = await this.servicesRepository.find({
@@ -242,68 +244,70 @@ export class ServicesService {
       await this.ensureCategoryExists(dto.categoryId);
     }
 
-    const updatedService = await this.dataSource.transaction(async (manager) => {
-      const servicesRepository = manager.getRepository(Service);
-      const serviceImagesRepository = manager.getRepository(ServiceImage);
+    const updatedService = await this.dataSource.transaction(
+      async (manager) => {
+        const servicesRepository = manager.getRepository(Service);
+        const serviceImagesRepository = manager.getRepository(ServiceImage);
 
-      if (dto.categoryId !== undefined) {
-        service.categoryId = dto.categoryId;
-      }
-
-      if (dto.title !== undefined) {
-        service.title = dto.title.trim();
-      }
-
-      if (dto.description !== undefined) {
-        service.description = dto.description?.trim() || null;
-      }
-
-      if (dto.basePrice !== undefined) {
-        service.basePrice = this.formatPrice(dto.basePrice);
-      }
-
-      if (dto.isActive !== undefined) {
-        service.isActive = dto.isActive;
-      }
-
-      await servicesRepository.save(service);
-
-      if (dto.imageUrls !== undefined) {
-        await serviceImagesRepository.delete({
-          tenantId: provider.tenantId,
-          serviceId: service.id,
-        });
-
-        if (dto.imageUrls.length) {
-          await serviceImagesRepository.save(
-            this.buildServiceImages(
-              dto.imageUrls,
-              provider.tenantId,
-              service.id,
-              serviceImagesRepository,
-            ),
-          );
+        if (dto.categoryId !== undefined) {
+          service.categoryId = dto.categoryId;
         }
-      }
 
-      return servicesRepository.findOneOrFail({
-        where: {
-          id: service.id,
-          tenantId: provider.tenantId,
-          providerId: provider.id,
-        },
-        relations: {
-          category: true,
-          provider: true,
-          images: true,
-        },
-        order: {
-          images: {
-            sortOrder: 'ASC',
+        if (dto.title !== undefined) {
+          service.title = dto.title.trim();
+        }
+
+        if (dto.description !== undefined) {
+          service.description = dto.description?.trim() || null;
+        }
+
+        if (dto.basePrice !== undefined) {
+          service.basePrice = this.formatPrice(dto.basePrice);
+        }
+
+        if (dto.isActive !== undefined) {
+          service.isActive = dto.isActive;
+        }
+
+        await servicesRepository.save(service);
+
+        if (dto.imageUrls !== undefined) {
+          await serviceImagesRepository.delete({
+            tenantId: provider.tenantId,
+            serviceId: service.id,
+          });
+
+          if (dto.imageUrls.length) {
+            await serviceImagesRepository.save(
+              this.buildServiceImages(
+                dto.imageUrls,
+                provider.tenantId,
+                service.id,
+                serviceImagesRepository,
+              ),
+            );
+          }
+        }
+
+        return servicesRepository.findOneOrFail({
+          where: {
+            id: service.id,
+            tenantId: provider.tenantId,
+            providerId: provider.id,
           },
-        },
-      });
-    });
+          relations: {
+            category: true,
+            provider: true,
+            images: true,
+          },
+          order: {
+            images: {
+              sortOrder: 'ASC',
+            },
+          },
+        });
+      },
+    );
 
     return this.mapProviderServiceResponse(updatedService);
   }

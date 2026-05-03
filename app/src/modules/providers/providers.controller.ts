@@ -26,10 +26,7 @@ export class ProvidersController {
   }
 
   @Put('me')
-  updateMe(
-    @CurrentUser() user: RequestUser,
-    @Body() dto: UpdateProviderDto,
-  ) {
+  updateMe(@CurrentUser() user: RequestUser, @Body() dto: UpdateProviderDto) {
     return this.providersService.updateMe(user, dto);
   }
 

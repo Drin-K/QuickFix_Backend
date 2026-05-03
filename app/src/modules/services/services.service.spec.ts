@@ -162,8 +162,8 @@ describe('ServicesService', () => {
       'Provider verification is required before creating or publishing services.',
     );
 
-    expect(categoriesRepository.exists).not.toHaveBeenCalled();
-    expect(dataSource.transaction).not.toHaveBeenCalled();
+    expect(categoriesRepository.exists.mock.calls).toHaveLength(0);
+    expect(dataSource.transaction.mock.calls).toHaveLength(0);
   });
 
   it('rejects publishing a provider service when provider is not verified', async () => {
@@ -184,7 +184,7 @@ describe('ServicesService', () => {
       'Provider verification is required before creating or publishing services.',
     );
 
-    expect(categoriesRepository.exists).not.toHaveBeenCalled();
-    expect(dataSource.transaction).not.toHaveBeenCalled();
+    expect(categoriesRepository.exists.mock.calls).toHaveLength(0);
+    expect(dataSource.transaction.mock.calls).toHaveLength(0);
   });
 });
