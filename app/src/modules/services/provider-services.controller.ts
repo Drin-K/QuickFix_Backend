@@ -54,38 +54,6 @@ export class ProviderServicesController {
     return this.servicesService.getMyProviderServices(user);
   }
 
-  @Get(':id')
-  @ApiOperation({
-    summary: 'Get current provider service',
-    description:
-      'Returns a single service owned by the authenticated provider only.',
-  })
-  @ApiParam({
-    name: 'id',
-    type: Number,
-    description: 'Service identifier.',
-    example: 12,
-  })
-  @ApiOkResponse({
-    description: 'Provider service returned successfully.',
-  })
-  @ApiUnauthorizedResponse({
-    description:
-      'Authentication token is missing, invalid, or has invalid tenant context.',
-  })
-  @ApiForbiddenResponse({
-    description: 'Only providers can access provider service management.',
-  })
-  @ApiNotFoundResponse({
-    description: 'Service was not found for the authenticated provider.',
-  })
-  getById(
-    @Param('id', ParseIntPipe) id: number,
-    @CurrentUser() user: RequestUser,
-  ) {
-    return this.servicesService.getMyProviderService(id, user);
-  }
-
   @Post()
   @ApiOperation({
     summary: 'Create provider service',
