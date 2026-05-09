@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Controller,
   Get,
   Param,
@@ -31,23 +30,16 @@ export class ServicesController {
 
   @Get()
   @ApiOperation({
-    summary: 'List services for a tenant',
+    summary: 'List marketplace services',
     description:
-      'Returns active services for a tenant. You can provide tenant context with a Bearer token that includes tenantId or by sending the x-tenant-id header.',
+      'Returns active services across all provider tenants in the global marketplace.',
   })
   @ApiHeader({
     name: 'Authorization',
     required: false,
     description:
-      'Optional Bearer JWT. If provided and valid, tenantId is read from the token.',
+      'Optional Bearer JWT. Authentication does not scope the marketplace list.',
     schema: { type: 'string', example: 'Bearer <jwt-token>' },
-  })
-  @ApiHeader({
-    name: 'x-tenant-id',
-    required: false,
-    description:
-      'Tenant identifier. Required when a bearer token is not provided or does not include tenantId.',
-    schema: { type: 'integer', minimum: 1 },
   })
   @ApiOkResponse({
     description: 'Service list returned successfully.',
@@ -82,15 +74,15 @@ export class ServicesController {
     description: 'Bearer token format is invalid or the token is expired.',
   })
   getServices(@Req() request: Request) {
-    const tenantId = this.resolveTenantId(request);
-    return this.servicesService.getServices(tenantId);
+    this.ensureValidOptionalAuthToken(request);
+    return this.servicesService.getServices();
   }
 
   @Get(':id')
   @ApiOperation({
     summary: 'Get service details',
     description:
-      'Returns full details for a single service within the resolved tenant context.',
+      'Returns full details for a single active service from the global marketplace.',
   })
   @ApiParam({
     name: 'id',
@@ -102,15 +94,8 @@ export class ServicesController {
     name: 'Authorization',
     required: false,
     description:
-      'Optional Bearer JWT. If provided and valid, tenantId is read from the token.',
+      'Optional Bearer JWT. Authentication does not scope marketplace service details.',
     schema: { type: 'string', example: 'Bearer <jwt-token>' },
-  })
-  @ApiHeader({
-    name: 'x-tenant-id',
-    required: false,
-    description:
-      'Tenant identifier. Required when a bearer token is not provided or does not include tenantId.',
-    schema: { type: 'integer', minimum: 1 },
   })
   @ApiOkResponse({
     description: 'Service details returned successfully.',
@@ -150,38 +135,18 @@ export class ServicesController {
     description: 'Bearer token format is invalid or the token is expired.',
   })
   @ApiNotFoundResponse({
-    description: 'Service was not found for the current tenant.',
+    description: 'Service was not found.',
   })
   getById(@Param('id', ParseIntPipe) id: number, @Req() request: Request) {
-    const tenantId = this.resolveTenantId(request);
-    return this.servicesService.getById(id, tenantId);
+    this.ensureValidOptionalAuthToken(request);
+    return this.servicesService.getById(id);
   }
 
-  private resolveTenantId(request: Request): number {
-    const tenantIdFromToken = this.resolveTenantIdFromToken(request);
-
-    if (tenantIdFromToken) {
-      return tenantIdFromToken;
-    }
-
-    const tenantHeader = request.headers['x-tenant-id'];
-    const tenantValue = Array.isArray(tenantHeader)
-      ? tenantHeader[0]
-      : tenantHeader;
-    const tenantId = Number(tenantValue);
-
-    if (!tenantValue || !Number.isInteger(tenantId) || tenantId <= 0) {
-      throw new BadRequestException('Tenant context is required');
-    }
-
-    return tenantId;
-  }
-
-  private resolveTenantIdFromToken(request: Request): number | null {
+  private ensureValidOptionalAuthToken(request: Request): void {
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      return null;
+      return;
     }
 
     const [type, token] = authHeader.split(' ');
@@ -191,14 +156,9 @@ export class ServicesController {
     }
 
     try {
-      const payload = this.jwtService.verify<{ tenantId?: number | null }>(
-        token,
-        {
-          secret: process.env.JWT_SECRET ?? 'quickfix-dev-secret',
-        },
-      );
-
-      return payload.tenantId ?? null;
+      this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET ?? 'quickfix-dev-secret',
+      });
     } catch {
       throw new UnauthorizedException(
         'Invalid or expired authentication token',

@@ -148,6 +148,73 @@ describe('ServicesService', () => {
     ]);
   });
 
+  it('returns active services across tenants when tenant context is omitted', async () => {
+    repository.find.mockResolvedValue([]);
+
+    await expect(service.getServices()).resolves.toEqual({
+      services: [],
+    });
+
+    expect(repository.find.mock.calls[0]).toEqual([
+      {
+        where: {
+          isActive: true,
+        },
+        relations: {
+          category: true,
+          provider: true,
+          images: true,
+        },
+        order: {
+          createdAt: 'DESC',
+          images: {
+            sortOrder: 'ASC',
+          },
+        },
+      },
+    ]);
+  });
+
+  it('returns public service details globally when tenant context is omitted', async () => {
+    repository.findOne.mockResolvedValue({
+      id: 5,
+      tenantId: 12,
+      title: 'AC Repair',
+      description: 'Fixing AC units',
+      basePrice: '49.99',
+      isActive: true,
+      createdAt: new Date('2026-04-20T10:00:00.000Z'),
+      updatedAt: new Date('2026-04-21T10:00:00.000Z'),
+      category: {
+        id: 2,
+        name: 'HVAC',
+      },
+      provider: {
+        id: 9,
+        displayName: 'QuickFix HVAC',
+        description: 'Certified technicians',
+      },
+      images: [],
+    } as Service);
+
+    await expect(service.getById(5)).resolves.toEqual(
+      expect.objectContaining({
+        id: 5,
+        tenantId: 12,
+        title: 'AC Repair',
+      }),
+    );
+
+    expect(repository.findOne.mock.calls[0]).toEqual([
+      expect.objectContaining({
+        where: {
+          id: 5,
+          isActive: true,
+        },
+      }),
+    ]);
+  });
+
   it('rejects provider service creation when provider is not verified', async () => {
     providersRepository.findOne.mockResolvedValue(buildProvider(false));
 
