@@ -50,12 +50,16 @@ export class ServicesService {
     private readonly dataSource: DataSource,
   ) {}
 
-  async getServices(tenantId: number): Promise<ServicesListResponse> {
+  async getServices(tenantId?: number | null): Promise<ServicesListResponse> {
     const services = await this.servicesRepository.find({
-      where: {
-        tenantId,
-        isActive: true,
-      },
+      where: tenantId
+        ? {
+            tenantId,
+            isActive: true,
+          }
+        : {
+            isActive: true,
+          },
       relations: {
         category: true,
         provider: true,
@@ -97,9 +101,9 @@ export class ServicesService {
     };
   }
 
-  async getById(id: number, tenantId: number) {
+  async getById(id: number, tenantId?: number | null) {
     const service = await this.servicesRepository.findOne({
-      where: { id, tenantId },
+      where: tenantId ? { id, tenantId } : { id, isActive: true },
       relations: {
         category: true,
         provider: true,
@@ -113,7 +117,7 @@ export class ServicesService {
     });
 
     if (!service) {
-      throw new NotFoundException('Service not found for the current tenant');
+      throw new NotFoundException('Service not found');
     }
 
     return {

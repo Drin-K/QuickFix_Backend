@@ -1,4 +1,4 @@
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
@@ -42,7 +42,7 @@ describe('ServicesController', () => {
     controller = module.get<ServicesController>(ServicesController);
   });
 
-  it('uses tenant id from token for GET /services', async () => {
+  it('validates token but keeps GET /services globally scoped', async () => {
     jwtService.verify.mockReturnValue({ tenantId: 33 });
     servicesService.getServices.mockResolvedValue({ services: [] });
 
@@ -56,10 +56,13 @@ describe('ServicesController', () => {
       services: [],
     });
 
-    expect(servicesService.getServices).toHaveBeenCalledWith(33);
+    expect(jwtService.verify).toHaveBeenCalledWith('valid-token', {
+      secret: 'quickfix-dev-secret',
+    });
+    expect(servicesService.getServices).toHaveBeenCalledWith();
   });
 
-  it('falls back to x-tenant-id when token is not present', async () => {
+  it('ignores x-tenant-id for global marketplace services', async () => {
     servicesService.getServices.mockResolvedValue({ services: [] });
 
     const request = {
@@ -72,15 +75,36 @@ describe('ServicesController', () => {
       services: [],
     });
 
-    expect(servicesService.getServices).toHaveBeenCalledWith(8);
+    expect(servicesService.getServices).toHaveBeenCalledWith();
   });
 
-  it('throws when tenant context is missing', () => {
+  it('returns global marketplace services when tenant context is missing', async () => {
+    servicesService.getServices.mockResolvedValue({ services: [] });
+
     const request = {
       headers: {},
     } as Request;
 
-    expect(() => controller.getServices(request)).toThrow(BadRequestException);
+    await expect(controller.getServices(request)).resolves.toEqual({
+      services: [],
+    });
+
+    expect(servicesService.getServices).toHaveBeenCalledWith();
+  });
+
+  it('keeps service details globally scoped for authenticated providers', async () => {
+    jwtService.verify.mockReturnValue({ tenantId: 33 });
+    servicesService.getById.mockResolvedValue({ id: 5 });
+
+    const request = {
+      headers: {
+        authorization: 'Bearer provider-token',
+      },
+    } as Request;
+
+    await expect(controller.getById(5, request)).resolves.toEqual({ id: 5 });
+
+    expect(servicesService.getById).toHaveBeenCalledWith(5);
   });
 
   it('throws when authorization header is invalid', () => {
