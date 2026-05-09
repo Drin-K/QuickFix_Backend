@@ -215,8 +215,12 @@ const seedProviders = async (): Promise<void> => {
   const citiesRepository = dataSource.getRepository(City);
 
   for (const row of await readCsv('providers.csv')) {
-    const ownerUser = await findRequired(`provider owner ${row.ownerEmail}`, () =>
-      usersRepository.findOne({ where: { email: normalize(row.ownerEmail) } }),
+    const ownerUser = await findRequired(
+      `provider owner ${row.ownerEmail}`,
+      () =>
+        usersRepository.findOne({
+          where: { email: normalize(row.ownerEmail) },
+        }),
     );
     const tenant = await findRequired(`tenant ${row.tenantName}`, () =>
       tenantsRepository.findOne({ where: { name: row.tenantName } }),
@@ -263,8 +267,10 @@ const seedProviderDetails = async (): Promise<void> => {
           where: { email: normalize(row.providerOwnerEmail) },
         }),
     );
-    const provider = await findRequired(`provider ${row.providerOwnerEmail}`, () =>
-      providersRepository.findOne({ where: { ownerUserId: ownerUser.id } }),
+    const provider = await findRequired(
+      `provider ${row.providerOwnerEmail}`,
+      () =>
+        providersRepository.findOne({ where: { ownerUserId: ownerUser.id } }),
     );
     const existingDetails = await individualDetailsRepository.findOne({
       where: { tenantId: provider.tenantId, providerId: provider.id },
@@ -290,8 +296,10 @@ const seedProviderDetails = async (): Promise<void> => {
           where: { email: normalize(row.providerOwnerEmail) },
         }),
     );
-    const provider = await findRequired(`provider ${row.providerOwnerEmail}`, () =>
-      providersRepository.findOne({ where: { ownerUserId: ownerUser.id } }),
+    const provider = await findRequired(
+      `provider ${row.providerOwnerEmail}`,
+      () =>
+        providersRepository.findOne({ where: { ownerUserId: ownerUser.id } }),
     );
     const existingDetails = await companyDetailsRepository.findOne({
       where: { tenantId: provider.tenantId, providerId: provider.id },
@@ -324,8 +332,10 @@ const seedServices = async (): Promise<void> => {
           where: { email: normalize(row.providerOwnerEmail) },
         }),
     );
-    const provider = await findRequired(`provider ${row.providerOwnerEmail}`, () =>
-      providersRepository.findOne({ where: { ownerUserId: ownerUser.id } }),
+    const provider = await findRequired(
+      `provider ${row.providerOwnerEmail}`,
+      () =>
+        providersRepository.findOne({ where: { ownerUserId: ownerUser.id } }),
     );
     const category = await findRequired(`category ${row.categoryName}`, () =>
       categoriesRepository.findOne({ where: { name: row.categoryName } }),
@@ -360,8 +370,12 @@ const findService = async (
   const usersRepository = dataSource.getRepository(User);
   const providersRepository = dataSource.getRepository(Provider);
   const servicesRepository = dataSource.getRepository(Service);
-  const ownerUser = await findRequired(`provider owner ${providerOwnerEmail}`, () =>
-    usersRepository.findOne({ where: { email: normalize(providerOwnerEmail) } }),
+  const ownerUser = await findRequired(
+    `provider owner ${providerOwnerEmail}`,
+    () =>
+      usersRepository.findOne({
+        where: { email: normalize(providerOwnerEmail) },
+      }),
   );
   const provider = await findRequired(`provider ${providerOwnerEmail}`, () =>
     providersRepository.findOne({ where: { ownerUserId: ownerUser.id } }),
