@@ -1,0 +1,12 @@
+providerOwnerEmail,categoryName,title,description,basePrice,isActive
+arben.plumbing@quickfix.test,Plumbing,Emergency Leak Repair,"Fast leak detection and pipe repair for kitchens, bathrooms, and utility rooms.",35.00,true
+arben.plumbing@quickfix.test,Plumbing,Bathroom Fixture Installation,"Install faucets, sinks, toilets, showers, and small bathroom fixtures.",45.00,true
+lira.electric@quickfix.test,Electrical,Electrical Troubleshooting,"Find and fix power issues, breakers, sockets, switches, and lighting problems.",30.00,true
+lira.electric@quickfix.test,Electrical,Lighting Installation,"Install ceiling lights, LED strips, outdoor lights, and smart switches.",40.00,true
+drita.clean@quickfix.test,Cleaning,Apartment Deep Cleaning,"Detailed cleaning for apartments, kitchens, bathrooms, windows, and floors.",55.00,true
+drita.clean@quickfix.test,Cleaning,Office Weekly Cleaning,"Scheduled cleaning for small and medium offices.",80.00,true
+besa.hvac@quickfix.test,Heating and Cooling,AC Service and Maintenance,"Seasonal air conditioner cleaning, filter replacement, and performance check.",35.00,true
+besa.hvac@quickfix.test,Heating and Cooling,Heating System Check,"Inspection and basic maintenance for residential heating systems.",45.00,true
+colorpro@quickfix.test,Painting,Interior Room Painting,"Wall preparation and painting for bedrooms, living rooms, and offices.",70.00,true
+fixplus@quickfix.test,Handyman,Furniture Assembly,"Assembly for wardrobes, desks, shelves, beds, and flat-pack furniture.",25.00,true
+fixplus@quickfix.test,Appliance Repair,Washing Machine Repair,"Diagnosis and repair for common washing machine issues.",35.00,true

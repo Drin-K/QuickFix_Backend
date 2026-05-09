@@ -77,9 +77,6 @@ export class AuthService {
       if (registerDto.accountType === 'provider') {
         const tenant = tenantsRepository.create({
           name: registerDto.fullName.trim(),
-          slug: this.buildTenantSlug(registerDto.fullName, savedUser.id),
-          ownerUserId: savedUser.id,
-          isActive: true,
         });
 
         const savedTenant = await tenantsRepository.save(tenant);
@@ -178,18 +175,6 @@ export class AuthService {
 
     const role = rolesRepository.create({ name: roleName });
     return rolesRepository.save(role);
-  }
-
-  private buildTenantSlug(fullName: string, userId: number): string {
-    const baseSlug =
-      fullName
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '') || 'provider';
-    const suffix = `-${userId}`;
-
-    return `${baseSlug.slice(0, 255 - suffix.length)}${suffix}`;
   }
 
   private signToken(payload: AuthPayload): Promise<string> {

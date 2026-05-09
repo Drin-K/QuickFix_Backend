@@ -1,0 +1,7 @@
+tenantName,ownerEmail,type,displayName,description,cityName,address,isVerified,averageRating
+Arben Krasniqi,arben.plumbing@quickfix.test,individual,Arben Plumbing,"Plumber for leaks, bathrooms, kitchens, and urgent pipe repairs.",Prishtina,"Rruga B, Prishtina",true,4.80
+Lira Electric,lira.electric@quickfix.test,company,Lira Electric,"Certified electricians for homes and small businesses.",Prizren,"Sheshi Shadervan, Prizren",true,4.70
+Drita Clean,drita.clean@quickfix.test,company,Drita Clean,"Reliable cleaning team for apartments, offices, and post-renovation work.",Peja,"Rruga Mbreteresha Teute, Peja",true,4.60
+Besa HVAC,besa.hvac@quickfix.test,company,Besa HVAC,"Heating and cooling installation, service, and seasonal maintenance.",Gjilan,"Rruga Idriz Seferi, Gjilan",true,4.75
+ColorPro Kosova,colorpro@quickfix.test,company,ColorPro Kosova,"Interior painting and wall finishing for homes and offices.",Ferizaj,"Rruga Deshmoret e Kombit, Ferizaj",false,4.50
+FixPlus Home,fixplus@quickfix.test,company,FixPlus Home,"General handyman and appliance repair support.",Gjakova,"Rruga Nene Tereza, Gjakova",true,4.65

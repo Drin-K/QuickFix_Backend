@@ -1,0 +1,9 @@
+roleName,fullName,email,password,phone,isActive
+admin,QuickFix Admin,admin@quickfix.test,Password123!,+38344111000,true
+client,Demo Client,client@quickfix.test,Password123!,+38344111001,true
+provider,Arben Krasniqi,arben.plumbing@quickfix.test,Password123!,+38344111002,true
+provider,Lira Electric,lira.electric@quickfix.test,Password123!,+38344111003,true
+provider,Drita Clean,drita.clean@quickfix.test,Password123!,+38344111004,true
+provider,Besa HVAC,besa.hvac@quickfix.test,Password123!,+38344111005,true
+provider,ColorPro Kosova,colorpro@quickfix.test,Password123!,+38344111006,true
+provider,FixPlus Home,fixplus@quickfix.test,Password123!,+38344111007,true
