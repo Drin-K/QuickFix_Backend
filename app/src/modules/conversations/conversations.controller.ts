@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -13,6 +21,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { JwtAuthGuard, RequestUser } from '../auth/jwt-auth.guard';
 import { ConversationsService } from './conversations.service';
 import { CreateConversationDto } from './dto/create-conversation.dto';
+import { SendMessageDto } from './dto/send-message.dto';
 
 @ApiTags('Conversations')
 @ApiBearerAuth('bearer')
@@ -59,5 +68,79 @@ export class ConversationsController {
   })
   getMyConversations(@CurrentUser() user: RequestUser) {
     return this.conversationsService.getMyConversations(user);
+  }
+
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get conversation details',
+    description:
+      'Returns one conversation only when the authenticated user is a participant.',
+  })
+  @ApiOkResponse({
+    description: 'Conversation returned successfully.',
+  })
+  @ApiUnauthorizedResponse({
+    description:
+      'Authentication token is missing, invalid, expired, or has invalid tenant context.',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Authenticated user is not a participant in this conversation.',
+  })
+  getConversation(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.conversationsService.getConversation(id, user);
+  }
+
+  @Get(':id/messages')
+  @ApiOperation({
+    summary: 'List conversation messages',
+    description:
+      'Returns text message history only when the authenticated user is a participant.',
+  })
+  @ApiOkResponse({
+    description: 'Messages returned successfully.',
+  })
+  @ApiUnauthorizedResponse({
+    description:
+      'Authentication token is missing, invalid, expired, or has invalid tenant context.',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Authenticated user is not a participant in this conversation.',
+  })
+  getConversationMessages(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.conversationsService.getConversationMessages(id, user);
+  }
+
+  @Post(':id/messages')
+  @ApiOperation({
+    summary: 'Send a text message',
+    description:
+      'Stores a text message in a conversation using the authenticated user as sender.',
+  })
+  @ApiBody({ type: SendMessageDto })
+  @ApiCreatedResponse({
+    description: 'Message sent successfully.',
+  })
+  @ApiUnauthorizedResponse({
+    description:
+      'Authentication token is missing, invalid, expired, or has invalid tenant context.',
+  })
+  @ApiForbiddenResponse({
+    description:
+      'Authenticated user is not a participant in this conversation.',
+  })
+  sendMessage(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: SendMessageDto,
+    @CurrentUser() user: RequestUser,
+  ) {
+    return this.conversationsService.sendMessage(id, dto, user);
   }
 }
