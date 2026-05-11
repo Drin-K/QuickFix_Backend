@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   NotFoundException,
   UnauthorizedException,
@@ -7,13 +8,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RequestUser } from '../auth/jwt-auth.guard';
-import { Conversation, Provider, Service, User } from '../shared/entities';
+import {
+  Conversation,
+  Message,
+  MessageType,
+  Provider,
+  Service,
+  User,
+} from '../shared/entities';
 import { ConversationsService } from './conversations.service';
 
 describe('ConversationsService', () => {
   let service: ConversationsService;
   let conversationsRepository: jest.Mocked<Repository<Conversation>>;
   let providersRepository: jest.Mocked<Repository<Provider>>;
+  let messagesRepository: jest.Mocked<Repository<Message>>;
+  let messageTypesRepository: jest.Mocked<Repository<MessageType>>;
   let servicesRepository: jest.Mocked<Repository<Service>>;
   let usersRepository: jest.Mocked<Repository<User>>;
 
@@ -52,6 +62,27 @@ describe('ConversationsService', () => {
       ...overrides,
     }) as Conversation;
 
+  const buildMessage = (overrides: Partial<Message> = {}): Message =>
+    ({
+      id: 70,
+      tenantId: 12,
+      conversationId: 44,
+      senderUserId: 31,
+      messageTypeId: 1,
+      content: 'Hi, I would like to ask about this service.',
+      sentAt: new Date('2026-05-11T09:05:00.000Z'),
+      senderUser: {
+        id: 31,
+        fullName: 'Jane Client',
+        email: 'jane@example.com',
+      },
+      messageType: {
+        id: 1,
+        name: 'text',
+      },
+      ...overrides,
+    }) as Message;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -68,6 +99,21 @@ describe('ConversationsService', () => {
         },
         {
           provide: getRepositoryToken(Provider),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(Message),
+          useValue: {
+            create: jest.fn(),
+            find: jest.fn(),
+            findOneOrFail: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(MessageType),
           useValue: {
             findOne: jest.fn(),
           },
@@ -90,6 +136,8 @@ describe('ConversationsService', () => {
     service = module.get<ConversationsService>(ConversationsService);
     conversationsRepository = module.get(getRepositoryToken(Conversation));
     providersRepository = module.get(getRepositoryToken(Provider));
+    messagesRepository = module.get(getRepositoryToken(Message));
+    messageTypesRepository = module.get(getRepositoryToken(MessageType));
     servicesRepository = module.get(getRepositoryToken(Service));
     usersRepository = module.get(getRepositoryToken(User));
   });
@@ -307,5 +355,188 @@ describe('ConversationsService', () => {
         tenantId: null,
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('returns conversation details for the authenticated client participant', async () => {
+    conversationsRepository.findOne.mockResolvedValue(buildConversation());
+
+    const result = await service.getConversation(44, clientUser);
+
+    expect(result.conversation).toEqual(
+      expect.objectContaining({
+        id: 44,
+        clientUserId: 31,
+        providerId: 9,
+      }) as Conversation,
+    );
+
+    expect(conversationsRepository.findOne.mock.calls[0]).toEqual([
+      {
+        where: {
+          id: 44,
+        },
+        relations: {
+          clientUser: true,
+          provider: true,
+        },
+      },
+    ]);
+  });
+
+  it('rejects conversation details when the client is not a participant', async () => {
+    conversationsRepository.findOne.mockResolvedValue(
+      buildConversation({
+        clientUserId: 99,
+      }),
+    );
+
+    await expect(
+      service.getConversation(44, clientUser),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('returns conversation details for the authenticated provider participant', async () => {
+    conversationsRepository.findOne.mockResolvedValue(buildConversation());
+    providersRepository.findOne.mockResolvedValue({
+      id: 9,
+      tenantId: 12,
+      ownerUserId: 7,
+    } as Provider);
+
+    const result = await service.getConversation(44, providerUser);
+
+    expect(result.conversation).toEqual(
+      expect.objectContaining({
+        id: 44,
+        tenantId: 12,
+        providerId: 9,
+      }) as Conversation,
+    );
+  });
+
+  it('lists messages for a conversation participant', async () => {
+    conversationsRepository.findOne.mockResolvedValue(buildConversation());
+    messagesRepository.find.mockResolvedValue([buildMessage()]);
+
+    await expect(
+      service.getConversationMessages(44, clientUser),
+    ).resolves.toEqual({
+      messages: [
+        {
+          id: 70,
+          tenantId: 12,
+          conversationId: 44,
+          senderUserId: 31,
+          messageTypeId: 1,
+          content: 'Hi, I would like to ask about this service.',
+          sentAt: new Date('2026-05-11T09:05:00.000Z'),
+          senderUser: {
+            id: 31,
+            fullName: 'Jane Client',
+            email: 'jane@example.com',
+          },
+          messageType: {
+            id: 1,
+            name: 'text',
+          },
+        },
+      ],
+    });
+
+    expect(messagesRepository.find.mock.calls[0]).toEqual([
+      {
+        where: {
+          tenantId: 12,
+          conversationId: 44,
+        },
+        relations: {
+          senderUser: true,
+          messageType: true,
+        },
+        order: {
+          sentAt: 'ASC',
+        },
+      },
+    ]);
+  });
+
+  it('sends a text message using the authenticated user as sender', async () => {
+    conversationsRepository.findOne.mockResolvedValue(buildConversation());
+    messageTypesRepository.findOne.mockResolvedValue({
+      id: 1,
+      name: 'text',
+    } as MessageType);
+    messagesRepository.create.mockReturnValue({
+      tenantId: 12,
+      conversationId: 44,
+      senderUserId: 31,
+      messageTypeId: 1,
+      content: 'Hello provider',
+    } as Message);
+    messagesRepository.save.mockResolvedValue({
+      id: 71,
+      tenantId: 12,
+      conversationId: 44,
+      senderUserId: 31,
+      messageTypeId: 1,
+      content: 'Hello provider',
+    } as Message);
+    messagesRepository.findOneOrFail.mockResolvedValue(
+      buildMessage({
+        id: 71,
+        content: 'Hello provider',
+      }),
+    );
+
+    const result = await service.sendMessage(
+      44,
+      { content: '  Hello provider  ' },
+      clientUser,
+    );
+
+    expect(result.message).toEqual(
+      expect.objectContaining({
+        id: 71,
+        conversationId: 44,
+        senderUserId: 31,
+        content: 'Hello provider',
+      }) as Message,
+    );
+
+    expect(messagesRepository.create.mock.calls[0]).toEqual([
+      {
+        tenantId: 12,
+        conversationId: 44,
+        senderUserId: 31,
+        messageTypeId: 1,
+        content: 'Hello provider',
+      },
+    ]);
+  });
+
+  it('rejects blank text messages after trimming content', async () => {
+    conversationsRepository.findOne.mockResolvedValue(buildConversation());
+    messageTypesRepository.findOne.mockResolvedValue({
+      id: 1,
+      name: 'text',
+    } as MessageType);
+
+    await expect(
+      service.sendMessage(44, { content: '   ' }, clientUser),
+    ).rejects.toBeInstanceOf(BadRequestException);
+
+    expect(messagesRepository.save.mock.calls).toHaveLength(0);
+  });
+
+  it('rejects sending messages when the user is not a participant', async () => {
+    conversationsRepository.findOne.mockResolvedValue(
+      buildConversation({
+        clientUserId: 99,
+      }),
+    );
+
+    await expect(
+      service.sendMessage(44, { content: 'No access' }, clientUser),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });
