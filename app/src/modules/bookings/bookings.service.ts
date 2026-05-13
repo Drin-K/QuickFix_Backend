@@ -120,6 +120,7 @@ export class BookingsService {
         relations: {
           clientUser: true,
           provider: true,
+          review: true,
           service: true,
           status: true,
         },
@@ -137,6 +138,7 @@ export class BookingsService {
       },
       relations: {
         provider: true,
+        review: true,
         service: true,
         status: true,
       },
@@ -195,6 +197,14 @@ export class BookingsService {
             id: booking.clientUser.id,
             fullName: booking.clientUser.fullName,
             email: booking.clientUser.email,
+          }
+        : null,
+      review: booking.review
+        ? {
+            id: booking.review.id,
+            rating: booking.review.rating,
+            comment: booking.review.comment,
+            createdAt: booking.review.createdAt,
           }
         : null,
     };
