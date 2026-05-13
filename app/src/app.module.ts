@@ -9,6 +9,7 @@ import { BookingsModule } from './modules/bookings/bookings.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { HealthModule } from './modules/health/health.module';
 import { ConversationsModule } from './modules/conversations/conversations.module';
+import { FavoritesModule } from './modules/favorites/favorites.module';
 import { ProviderAvailabilityModule } from './modules/provider-availability/provider-availability.module';
 import { ProviderDocumentsModule } from './modules/provider-documents/provider-documents.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
@@ -31,6 +32,7 @@ import { ProvidersModule } from './modules/providers/providers.module';
     UsersModule,
     CategoriesModule,
     ConversationsModule,
+    FavoritesModule,
     HealthModule,
     ProviderAvailabilityModule,
     ProviderDocumentsModule,
