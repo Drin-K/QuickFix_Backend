@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 
-export type AuthRole = 'client' | 'provider';
+export type AuthRole = 'admin' | 'platform_admin' | 'client' | 'provider';
 
 export type AuthPayload = {
   sub: number;

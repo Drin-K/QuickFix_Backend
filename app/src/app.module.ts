@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { BookingsModule } from './modules/bookings/bookings.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { HealthModule } from './modules/health/health.module';
@@ -24,6 +25,7 @@ import { ProvidersModule } from './modules/providers/providers.module';
     }),
     DatabaseModule,
     AuthModule,
+    AdminModule,
     ServicesModule,
     BookingsModule,
     UsersModule,
