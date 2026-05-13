@@ -111,6 +111,46 @@ export class ReviewsService {
     };
   }
 
+  async getProviderReviews(providerId: number) {
+    const provider = await this.providersRepository.findOne({
+      where: {
+        id: providerId,
+      },
+    });
+
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+
+    const reviews = await this.reviewsRepository.find({
+      where: {
+        providerId: provider.id,
+        tenantId: provider.tenantId,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return {
+      provider: {
+        id: provider.id,
+        displayName: provider.displayName,
+        averageRating: provider.averageRating,
+      },
+      summary: {
+        averageRating: provider.averageRating,
+        count: reviews.length,
+      },
+      reviews: reviews.map((review) => ({
+        id: review.id,
+        rating: review.rating,
+        comment: review.comment,
+        createdAt: review.createdAt,
+      })),
+    };
+  }
+
   private async calculateProviderAverageRating(
     providerId: number,
     tenantId: number,

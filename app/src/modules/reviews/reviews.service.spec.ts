@@ -15,9 +15,12 @@ describe('ReviewsService', () => {
     findOne: jest.Mock;
   };
   let reviewsRepository: {
+    find: jest.Mock;
     createQueryBuilder: jest.Mock;
   };
-  let providersRepository: Record<string, never>;
+  let providersRepository: {
+    findOne: jest.Mock;
+  };
   let dataSource: {
     transaction: jest.Mock;
   };
@@ -28,10 +31,13 @@ describe('ReviewsService', () => {
     };
 
     reviewsRepository = {
+      find: jest.fn(),
       createQueryBuilder: jest.fn(),
     };
 
-    providersRepository = {};
+    providersRepository = {
+      findOne: jest.fn(),
+    };
 
     dataSource = {
       transaction: jest.fn(),
@@ -212,5 +218,72 @@ describe('ReviewsService', () => {
 
     await expect(service.create({ bookingId: 15, rating: 5 }, user, 2)).rejects
       .toBeInstanceOf(BadRequestException);
+  });
+
+  it('returns provider reviews with summary information', async () => {
+    providersRepository.findOne.mockResolvedValue({
+      id: 5,
+      tenantId: 2,
+      displayName: 'QuickFix Plumbing',
+      averageRating: '4.50',
+    });
+    reviewsRepository.find.mockResolvedValue([
+      {
+        id: 7,
+        rating: 5,
+        comment: 'Great service',
+        createdAt: new Date('2026-05-13T18:00:00.000Z'),
+      },
+      {
+        id: 4,
+        rating: 4,
+        comment: null,
+        createdAt: new Date('2026-05-10T09:30:00.000Z'),
+      },
+    ]);
+
+    await expect(service.getProviderReviews(5)).resolves.toEqual({
+      provider: {
+        id: 5,
+        displayName: 'QuickFix Plumbing',
+        averageRating: '4.50',
+      },
+      summary: {
+        averageRating: '4.50',
+        count: 2,
+      },
+      reviews: [
+        {
+          id: 7,
+          rating: 5,
+          comment: 'Great service',
+          createdAt: new Date('2026-05-13T18:00:00.000Z'),
+        },
+        {
+          id: 4,
+          rating: 4,
+          comment: null,
+          createdAt: new Date('2026-05-10T09:30:00.000Z'),
+        },
+      ],
+    });
+
+    expect(reviewsRepository.find).toHaveBeenCalledWith({
+      where: {
+        providerId: 5,
+        tenantId: 2,
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  });
+
+  it('rejects provider review listing when provider does not exist', async () => {
+    providersRepository.findOne.mockResolvedValue(null);
+
+    await expect(service.getProviderReviews(999)).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });
