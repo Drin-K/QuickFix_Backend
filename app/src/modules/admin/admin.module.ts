@@ -10,6 +10,8 @@ import {
 } from '../shared/entities';
 import { AdminDashboardController } from './admin-dashboard.controller';
 import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminProvidersController } from './admin-providers.controller';
+import { AdminProvidersService } from './admin-providers.service';
 
 @Module({
   imports: [
@@ -22,7 +24,7 @@ import { AdminDashboardService } from './admin-dashboard.service';
       User,
     ]),
   ],
-  controllers: [AdminDashboardController],
-  providers: [AdminDashboardService],
+  controllers: [AdminDashboardController, AdminProvidersController],
+  providers: [AdminDashboardService, AdminProvidersService],
 })
 export class AdminModule {}
