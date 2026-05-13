@@ -21,6 +21,7 @@ describe('ProvidersService', () => {
   let bookingsRepository: {
     find: jest.Mock;
     findOne: jest.Mock;
+    update: jest.Mock;
   };
   let bookingStatusesRepository: {
     findOne: jest.Mock;
@@ -38,6 +39,7 @@ describe('ProvidersService', () => {
     bookingsRepository = {
       find: jest.fn(),
       findOne: jest.fn(),
+      update: jest.fn(),
     };
 
     bookingStatusesRepository = {
@@ -205,7 +207,7 @@ describe('ProvidersService', () => {
       },
     };
     const nextStatus = { id: 2, name: 'confirmed' };
-    const saveBooking = jest.fn();
+    const updateBooking = jest.fn();
     const createHistoryEntry = jest
       .fn()
       .mockImplementation((value: unknown) => value);
@@ -235,7 +237,7 @@ describe('ProvidersService', () => {
         getRepository: (entity: unknown) => {
           if (entity === Booking) {
             return {
-              save: saveBooking,
+              update: updateBooking,
               findOneOrFail,
             };
           }
@@ -257,11 +259,15 @@ describe('ProvidersService', () => {
       }),
     );
 
-    expect(saveBooking).toHaveBeenCalledWith(
-      expect.objectContaining({
+    expect(updateBooking).toHaveBeenCalledWith(
+      {
         id: 14,
+        tenantId: 4,
+        providerId: 22,
+      },
+      {
         statusId: 2,
-      }),
+      },
     );
     expect(createHistoryEntry).toHaveBeenCalledWith({
       tenantId: 4,
