@@ -416,10 +416,16 @@ export class ProvidersService {
         const bookingStatusHistoryRepository =
           manager.getRepository(BookingStatusHistory);
 
-        booking.statusId = nextStatus.id;
-        booking.status = nextStatus;
-
-        await bookingsRepository.save(booking);
+        await bookingsRepository.update(
+          {
+            id: booking.id,
+            tenantId: booking.tenantId,
+            providerId: provider.id,
+          },
+          {
+            statusId: nextStatus.id,
+          },
+        );
 
         const historyEntry = bookingStatusHistoryRepository.create({
           tenantId: booking.tenantId,
