@@ -1,9 +1,19 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
+  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -64,5 +74,65 @@ export class AdminServicesController {
     @Query() query: AdminServicesQueryDto,
   ) {
     return this.adminServicesService.getServices(user, query);
+  }
+
+  @Patch(':id/deactivate')
+  @ApiOperation({
+    summary: 'Deactivate a service',
+    description: 'Sets the selected service isActive flag to false.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Service identifier.',
+    example: 12,
+  })
+  @ApiOkResponse({
+    description: 'Service deactivated successfully.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication token is missing, invalid, or expired.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Only admins can deactivate services.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Service was not found.',
+  })
+  deactivateService(
+    @CurrentUser() user: RequestUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.adminServicesService.deactivateService(user, id);
+  }
+
+  @Patch(':id/reactivate')
+  @ApiOperation({
+    summary: 'Reactivate a service',
+    description: 'Sets the selected service isActive flag to true.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Service identifier.',
+    example: 12,
+  })
+  @ApiOkResponse({
+    description: 'Service reactivated successfully.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication token is missing, invalid, or expired.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Only admins can reactivate services.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Service was not found.',
+  })
+  reactivateService(
+    @CurrentUser() user: RequestUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.adminServicesService.reactivateService(user, id);
   }
 }
