@@ -53,7 +53,8 @@ export class FavoritesController {
   @Post()
   @ApiOperation({
     summary: 'Favorite a provider',
-    description: 'Adds the selected provider to the authenticated client favorites.',
+    description:
+      'Adds the selected provider to the authenticated client favorites.',
   })
   @ApiOkResponse({
     description: 'Provider added to favorites successfully.',
