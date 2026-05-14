@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RequestUser } from '../auth/jwt-auth.guard';
-import { Provider, Service, User } from '../shared/entities';
+import { Provider, ProviderDocument, Service, User } from '../shared/entities';
 import { AdminProvidersQueryDto } from './dto/admin-providers-query.dto';
 
 type ProviderWithCounts = Provider & {
@@ -169,11 +169,19 @@ export type AdminProviderDetailsResponse = {
   };
 };
 
+export type AdminProviderDetailsActionResponse =
+  AdminProviderDetailsResponse & {
+    message: string;
+  };
+
 @Injectable()
 export class AdminProvidersService {
   constructor(
     @InjectRepository(Provider)
     private readonly providersRepository: Repository<Provider>,
+
+    @InjectRepository(ProviderDocument)
+    private readonly providerDocumentsRepository: Repository<ProviderDocument>,
 
     @InjectRepository(Service)
     private readonly servicesRepository: Repository<Service>,
@@ -233,6 +241,64 @@ export class AdminProvidersService {
   ): Promise<AdminProviderDetailsResponse> {
     await this.assertAdminUser(user);
 
+    return this.loadProviderDetails(id);
+  }
+
+  async verifyProvider(
+    user: RequestUser,
+    id: number,
+  ): Promise<AdminProviderDetailsActionResponse> {
+    return this.updateProviderVerification(user, id, true);
+  }
+
+  async unverifyProvider(
+    user: RequestUser,
+    id: number,
+  ): Promise<AdminProviderDetailsActionResponse> {
+    return this.updateProviderVerification(user, id, false);
+  }
+
+  async verifyProviderDocument(
+    user: RequestUser,
+    id: number,
+  ): Promise<AdminProviderDetailsActionResponse> {
+    return this.updateProviderDocumentVerification(user, id, true);
+  }
+
+  async unverifyProviderDocument(
+    user: RequestUser,
+    id: number,
+  ): Promise<AdminProviderDetailsActionResponse> {
+    return this.updateProviderDocumentVerification(user, id, false);
+  }
+
+  private async assertAdminUser(user: RequestUser): Promise<void> {
+    if (user.role !== 'admin' && user.role !== 'platform_admin') {
+      throw new ForbiddenException('Only admins can access providers');
+    }
+
+    const admin = await this.usersRepository.findOne({
+      where: {
+        id: user.id,
+        isActive: true,
+      },
+      relations: {
+        role: true,
+      },
+    });
+
+    if (
+      !admin ||
+      admin.role.name !== user.role ||
+      (admin.role.name !== 'admin' && admin.role.name !== 'platform_admin')
+    ) {
+      throw new ForbiddenException('Only admins can access providers');
+    }
+  }
+
+  private async loadProviderDetails(
+    id: number,
+  ): Promise<AdminProviderDetailsResponse> {
     const provider = await this.findProviderForDetails(id);
 
     if (!provider) {
@@ -318,46 +384,62 @@ export class AdminProvidersService {
     };
   }
 
-  private async assertAdminUser(user: RequestUser): Promise<void> {
-    if (user.role !== 'admin' && user.role !== 'platform_admin') {
-      throw new ForbiddenException('Only admins can access providers');
+  private async updateProviderVerification(
+    user: RequestUser,
+    id: number,
+    isVerified: boolean,
+  ): Promise<AdminProviderDetailsActionResponse> {
+    await this.assertAdminUser(user);
+
+    const provider = await this.findProviderForDetails(id);
+
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
     }
 
-    const admin = await this.usersRepository.findOne({
-      where: {
-        id: user.id,
-        isActive: true,
-      },
-      relations: {
-        role: true,
-      },
-    });
+    provider.isVerified = isVerified;
+    await this.providersRepository.save(provider);
 
-    if (
-      !admin ||
-      admin.role.name !== user.role ||
-      (admin.role.name !== 'admin' && admin.role.name !== 'platform_admin')
-    ) {
-      throw new ForbiddenException('Only admins can access providers');
+    return {
+      message: isVerified
+        ? 'Provider verified successfully.'
+        : 'Provider unverified successfully.',
+      ...(await this.loadProviderDetails(provider.id)),
+    };
+  }
+
+  private async updateProviderDocumentVerification(
+    user: RequestUser,
+    id: number,
+    isVerified: boolean,
+  ): Promise<AdminProviderDetailsActionResponse> {
+    await this.assertAdminUser(user);
+
+    const document = await this.findProviderDocumentForVerification(id);
+
+    if (!document) {
+      throw new NotFoundException('Provider document not found');
     }
+
+    document.isVerified = isVerified;
+    await this.providerDocumentsRepository.save(document);
+
+    const providerId = document.providerId ?? document.provider?.id;
+
+    if (!providerId) {
+      throw new NotFoundException('Provider not found');
+    }
+
+    return {
+      message: isVerified
+        ? 'Document verified successfully.'
+        : 'Document unverified successfully.',
+      ...(await this.loadProviderDetails(providerId)),
+    };
   }
 
   private async findProviderForDetails(id: number): Promise<Provider | null> {
-    const relations = {
-      ownerUser: true,
-      tenant: true,
-      city: true,
-      companyDetails: true,
-      individualDetails: true,
-      documents: true,
-    } as const;
-
-    const exactProvider = await this.providersRepository.findOne({
-      where: {
-        id,
-      },
-      relations,
-    });
+    const exactProvider = await this.findProviderWithDetailsRelations(id);
 
     if (exactProvider) {
       return exactProvider;
@@ -367,16 +449,96 @@ export class AdminProvidersService {
       where: {
         tenantId: id,
       },
-      relations,
+      relations: {
+        ownerUser: true,
+        tenant: true,
+        city: true,
+        companyDetails: true,
+        individualDetails: true,
+        documents: true,
+      },
     });
 
     if (tenantProvider) {
       return tenantProvider;
     }
 
-    return this.providersRepository.findOne({
+    const ownerProvider = await this.providersRepository.findOne({
       where: {
         ownerUserId: id,
+      },
+      relations: {
+        ownerUser: true,
+        tenant: true,
+        city: true,
+        companyDetails: true,
+        individualDetails: true,
+        documents: true,
+      },
+    });
+
+    if (ownerProvider) {
+      return ownerProvider;
+    }
+
+    const providerDocument = await this.providerDocumentsRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        provider: true,
+      },
+    });
+
+    if (providerDocument?.providerId) {
+      return this.findProviderWithDetailsRelations(providerDocument.providerId);
+    }
+
+    if (providerDocument?.provider?.id) {
+      return this.findProviderWithDetailsRelations(providerDocument.provider.id);
+    }
+
+    return null;
+  }
+
+  private async findProviderDocumentForVerification(
+    id: number,
+  ): Promise<ProviderDocument | null> {
+    const exactDocument = await this.providerDocumentsRepository.findOne({
+      where: {
+        id,
+      },
+      relations: {
+        provider: true,
+      },
+    });
+
+    if (exactDocument) {
+      return exactDocument;
+    }
+
+    const provider = await this.findProviderForDetails(id);
+
+    if (!provider || provider.documents.length !== 1) {
+      return null;
+    }
+
+    return provider.documents[0] ?? null;
+  }
+
+  private async findProviderWithDetailsRelations(id: number): Promise<Provider | null> {
+    const relations = {
+      ownerUser: true,
+      tenant: true,
+      city: true,
+      companyDetails: true,
+      individualDetails: true,
+      documents: true,
+    } as const;
+
+    return this.providersRepository.findOne({
+      where: {
+        id,
       },
       relations,
     });
