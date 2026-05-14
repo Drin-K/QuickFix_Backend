@@ -9,12 +9,16 @@ describe('AdminProvidersController', () => {
   let adminProvidersService: {
     getProviders: jest.Mock;
     getProviderDetails: jest.Mock;
+    verifyProvider: jest.Mock;
+    unverifyProvider: jest.Mock;
   };
 
   beforeEach(async () => {
     adminProvidersService = {
       getProviders: jest.fn(),
       getProviderDetails: jest.fn(),
+      verifyProvider: jest.fn(),
+      unverifyProvider: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -104,5 +108,35 @@ describe('AdminProvidersController', () => {
     });
 
     expect(adminProvidersService.getProviderDetails).toHaveBeenCalledWith(user, 10);
+  });
+
+  it('verifies providers for admins', async () => {
+    const user = { id: 1, role: 'admin', tenantId: null } as const;
+    adminProvidersService.verifyProvider.mockResolvedValue({
+      message: 'Provider verified successfully.',
+      provider: { id: 10, isVerified: true },
+    });
+
+    await expect(controller.verifyProvider(user, 10)).resolves.toEqual({
+      message: 'Provider verified successfully.',
+      provider: { id: 10, isVerified: true },
+    });
+
+    expect(adminProvidersService.verifyProvider).toHaveBeenCalledWith(user, 10);
+  });
+
+  it('unverifies providers for admins', async () => {
+    const user = { id: 1, role: 'admin', tenantId: null } as const;
+    adminProvidersService.unverifyProvider.mockResolvedValue({
+      message: 'Provider unverified successfully.',
+      provider: { id: 10, isVerified: false },
+    });
+
+    await expect(controller.unverifyProvider(user, 10)).resolves.toEqual({
+      message: 'Provider unverified successfully.',
+      provider: { id: 10, isVerified: false },
+    });
+
+    expect(adminProvidersService.unverifyProvider).toHaveBeenCalledWith(user, 10);
   });
 });

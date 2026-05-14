@@ -10,6 +10,7 @@ import {
 } from '../shared/entities';
 import { AdminDashboardController } from './admin-dashboard.controller';
 import { AdminDashboardService } from './admin-dashboard.service';
+import { AdminProviderDocumentsController } from './admin-provider-documents.controller';
 import { AdminProvidersController } from './admin-providers.controller';
 import { AdminProvidersService } from './admin-providers.service';
 import { AdminServicesController } from './admin-services.controller';
@@ -28,6 +29,7 @@ import { AdminServicesService } from './admin-services.service';
   ],
   controllers: [
     AdminDashboardController,
+    AdminProviderDocumentsController,
     AdminProvidersController,
     AdminServicesController,
   ],

@@ -1,8 +1,11 @@
 import {
   Controller,
+  HttpCode,
+  HttpStatus,
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -195,5 +198,88 @@ export class AdminProvidersController {
     @Param('id', ParseIntPipe) id: number,
   ) {
     return this.adminProvidersService.getProviderDetails(user, id);
+  }
+
+  @Patch(':id/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Verify a provider for admin',
+    description: 'Marks the selected provider as verified for admin moderation.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Provider identifier.',
+    example: 4,
+  })
+  @ApiOkResponse({
+    description: 'Provider verified successfully.',
+    schema: {
+      example: {
+        message: 'Provider verified successfully.',
+        provider: {
+          id: 4,
+          isVerified: true,
+          verificationStatus: 'verified',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication token is missing, invalid, or expired.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Only admins can access provider verification actions.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Provider was not found.',
+  })
+  verifyProvider(
+    @CurrentUser() user: RequestUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.adminProvidersService.verifyProvider(user, id);
+  }
+
+  @Patch(':id/unverify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Unverify a provider for admin',
+    description:
+      'Marks the selected provider as unverified for admin moderation.',
+  })
+  @ApiParam({
+    name: 'id',
+    type: Number,
+    description: 'Provider identifier.',
+    example: 4,
+  })
+  @ApiOkResponse({
+    description: 'Provider unverified successfully.',
+    schema: {
+      example: {
+        message: 'Provider unverified successfully.',
+        provider: {
+          id: 4,
+          isVerified: false,
+          verificationStatus: 'unverified',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Authentication token is missing, invalid, or expired.',
+  })
+  @ApiForbiddenResponse({
+    description: 'Only admins can access provider verification actions.',
+  })
+  @ApiNotFoundResponse({
+    description: 'Provider was not found.',
+  })
+  unverifyProvider(
+    @CurrentUser() user: RequestUser,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.adminProvidersService.unverifyProvider(user, id);
   }
 }

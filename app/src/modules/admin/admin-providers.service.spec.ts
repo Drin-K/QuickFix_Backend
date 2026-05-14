@@ -16,6 +16,7 @@ type QueryBuilderMock = {
 type MockRepository = {
   createQueryBuilder: jest.Mock;
   findOne: jest.Mock;
+  save: jest.Mock;
 };
 
 const createQueryBuilderMock = (): QueryBuilderMock => {
@@ -43,6 +44,7 @@ const createQueryBuilderMock = (): QueryBuilderMock => {
 describe('AdminProvidersService', () => {
   let service: AdminProvidersService;
   let providersRepository: MockRepository;
+  let providerDocumentsRepository: MockRepository;
   let servicesRepository: MockRepository;
   let usersRepository: MockRepository;
   let queryBuilder: QueryBuilderMock;
@@ -52,18 +54,27 @@ describe('AdminProvidersService', () => {
     providersRepository = {
       createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
       findOne: jest.fn(),
+      save: jest.fn(),
+    };
+    providerDocumentsRepository = {
+      createQueryBuilder: jest.fn(),
+      findOne: jest.fn(),
+      save: jest.fn(),
     };
     servicesRepository = {
       createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
       findOne: jest.fn(),
+      save: jest.fn(),
     };
     usersRepository = {
       createQueryBuilder: jest.fn(),
       findOne: jest.fn(),
+      save: jest.fn(),
     };
 
     service = new AdminProvidersService(
       providersRepository as never,
+      providerDocumentsRepository as never,
       servicesRepository as never,
       usersRepository as never,
     );
@@ -501,6 +512,335 @@ describe('AdminProvidersService', () => {
       2,
       expect.objectContaining({
         where: { tenantId: 4 },
+      }),
+    );
+  });
+
+  it('verifies providers for admins and returns updated details', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 1,
+      isActive: true,
+      role: { name: 'admin' },
+    } as User);
+
+    providersRepository.findOne
+      .mockResolvedValueOnce({
+        id: 10,
+        tenantId: 4,
+        ownerUserId: 11,
+        type: 'company',
+        displayName: 'QuickFix Plumbing',
+        description: 'Trusted plumbing help for households and offices.',
+        city: {
+          id: 3,
+          name: 'Prishtina',
+        },
+        address: 'Main street 12',
+        isVerified: false,
+        averageRating: '4.90',
+        createdAt: new Date('2026-04-15T09:00:00.000Z'),
+        updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+        ownerUser: null,
+        tenant: null,
+        companyDetails: null,
+        individualDetails: null,
+        documents: [],
+      } as Provider)
+      .mockResolvedValueOnce({
+        id: 10,
+        tenantId: 4,
+        ownerUserId: 11,
+        type: 'company',
+        displayName: 'QuickFix Plumbing',
+        description: 'Trusted plumbing help for households and offices.',
+        city: {
+          id: 3,
+          name: 'Prishtina',
+        },
+        address: 'Main street 12',
+        isVerified: true,
+        averageRating: '4.90',
+        createdAt: new Date('2026-04-15T09:00:00.000Z'),
+        updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+        ownerUser: null,
+        tenant: null,
+        companyDetails: null,
+        individualDetails: null,
+        documents: [],
+      } as Provider);
+
+    queryBuilder.getMany.mockResolvedValue([]);
+
+    await expect(
+      service.verifyProvider({ id: 1, role: 'admin', tenantId: null }, 10),
+    ).resolves.toMatchObject({
+      message: 'Provider verified successfully.',
+      provider: {
+        id: 10,
+        isVerified: true,
+      },
+    });
+
+    expect(providersRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 10,
+        isVerified: true,
+      }),
+    );
+  });
+
+  it('resolves provider verification through an associated document identifier when needed', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 1,
+      isActive: true,
+      role: { name: 'admin' },
+    } as User);
+
+    providerDocumentsRepository.findOne.mockResolvedValueOnce({
+      id: 22,
+      tenantId: 4,
+      providerId: 10,
+      documentType: 'business_license',
+      fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
+      isVerified: false,
+      createdAt: new Date('2026-04-30T12:00:00.000Z'),
+      provider: {
+        id: 10,
+      },
+    } as never);
+
+    providersRepository.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 10,
+        tenantId: 4,
+        ownerUserId: 11,
+        type: 'company',
+        displayName: 'QuickFix Plumbing',
+        description: 'Trusted plumbing help for households and offices.',
+        city: {
+          id: 3,
+          name: 'Prishtina',
+        },
+        address: 'Main street 12',
+        isVerified: false,
+        averageRating: '4.90',
+        createdAt: new Date('2026-04-15T09:00:00.000Z'),
+        updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+        ownerUser: null,
+        tenant: null,
+        companyDetails: null,
+        individualDetails: null,
+        documents: [],
+      } as Provider)
+      .mockResolvedValueOnce({
+        id: 10,
+        tenantId: 4,
+        ownerUserId: 11,
+        type: 'company',
+        displayName: 'QuickFix Plumbing',
+        description: 'Trusted plumbing help for households and offices.',
+        city: {
+          id: 3,
+          name: 'Prishtina',
+        },
+        address: 'Main street 12',
+        isVerified: true,
+        averageRating: '4.90',
+        createdAt: new Date('2026-04-15T09:00:00.000Z'),
+        updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+        ownerUser: null,
+        tenant: null,
+        companyDetails: null,
+        individualDetails: null,
+        documents: [],
+      } as Provider);
+
+    queryBuilder.getMany.mockResolvedValue([]);
+
+    await expect(
+      service.verifyProvider({ id: 1, role: 'admin', tenantId: null }, 22),
+    ).resolves.toMatchObject({
+      message: 'Provider verified successfully.',
+      provider: {
+        id: 10,
+        isVerified: true,
+      },
+    });
+
+    expect(providerDocumentsRepository.findOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 22 },
+      }),
+    );
+    expect(providersRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 10,
+        isVerified: true,
+      }),
+    );
+  });
+
+  it('verifies provider documents for admins and returns updated details', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 1,
+      isActive: true,
+      role: { name: 'admin' },
+    } as User);
+
+    providerDocumentsRepository.findOne.mockResolvedValue({
+      id: 22,
+      tenantId: 4,
+      providerId: 10,
+      documentType: 'business_license',
+      fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
+      isVerified: false,
+      createdAt: new Date('2026-04-30T12:00:00.000Z'),
+      provider: {
+        id: 10,
+      },
+    } as never);
+
+    providersRepository.findOne.mockResolvedValue({
+      id: 10,
+      tenantId: 4,
+      ownerUserId: 11,
+      type: 'company',
+      displayName: 'QuickFix Plumbing',
+      description: 'Trusted plumbing help for households and offices.',
+      city: {
+        id: 3,
+        name: 'Prishtina',
+      },
+      address: 'Main street 12',
+      isVerified: false,
+      averageRating: '4.90',
+      createdAt: new Date('2026-04-15T09:00:00.000Z'),
+      updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+      ownerUser: null,
+      tenant: null,
+      companyDetails: null,
+      individualDetails: null,
+      documents: [],
+    } as Provider);
+
+    queryBuilder.getMany.mockResolvedValue([]);
+
+    await expect(
+      service.verifyProviderDocument(
+        { id: 1, role: 'admin', tenantId: null },
+        22,
+      ),
+    ).resolves.toMatchObject({
+      message: 'Document verified successfully.',
+      provider: {
+        id: 10,
+        isVerified: false,
+      },
+    });
+
+    expect(providerDocumentsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 22,
+        isVerified: true,
+      }),
+    );
+  });
+
+  it('falls back to the provider document when the supplied identifier resolves to a unique provider', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 1,
+      isActive: true,
+      role: { name: 'admin' },
+    } as User);
+
+    providersRepository.findOne
+      .mockResolvedValueOnce({
+      id: 10,
+      tenantId: 4,
+      ownerUserId: 11,
+      type: 'company',
+      displayName: 'QuickFix Plumbing',
+      description: 'Trusted plumbing help for households and offices.',
+      city: {
+        id: 3,
+        name: 'Prishtina',
+      },
+      address: 'Main street 12',
+      isVerified: false,
+      averageRating: '4.90',
+      createdAt: new Date('2026-04-15T09:00:00.000Z'),
+      updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+      ownerUser: null,
+      tenant: null,
+      companyDetails: null,
+      individualDetails: null,
+      documents: [
+        {
+          id: 22,
+          tenantId: 4,
+          providerId: 10,
+          documentType: 'business_license',
+          fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
+          isVerified: false,
+          createdAt: new Date('2026-04-30T12:00:00.000Z'),
+        },
+      ],
+    } as Provider)
+      .mockResolvedValueOnce({
+        id: 10,
+        tenantId: 4,
+        ownerUserId: 11,
+        type: 'company',
+        displayName: 'QuickFix Plumbing',
+        description: 'Trusted plumbing help for households and offices.',
+        city: {
+          id: 3,
+          name: 'Prishtina',
+        },
+        address: 'Main street 12',
+        isVerified: false,
+        averageRating: '4.90',
+        createdAt: new Date('2026-04-15T09:00:00.000Z'),
+        updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+        ownerUser: null,
+        tenant: null,
+        companyDetails: null,
+        individualDetails: null,
+        documents: [
+          {
+            id: 22,
+            tenantId: 4,
+            providerId: 10,
+            documentType: 'business_license',
+            fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
+            isVerified: true,
+            createdAt: new Date('2026-04-30T12:00:00.000Z'),
+          },
+        ],
+      } as Provider);
+
+    queryBuilder.getMany.mockResolvedValue([]);
+
+    await expect(
+      service.verifyProviderDocument(
+        { id: 1, role: 'admin', tenantId: null },
+        10,
+      ),
+    ).resolves.toMatchObject({
+      message: 'Document verified successfully.',
+      provider: {
+        id: 10,
+        isVerified: false,
+      },
+    });
+
+    expect(providerDocumentsRepository.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 22,
+        isVerified: true,
       }),
     );
   });
