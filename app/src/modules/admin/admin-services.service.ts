@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RequestUser } from '../auth/jwt-auth.guard';
@@ -30,6 +34,11 @@ export type AdminServiceListItem = {
 export type AdminServicesResponse = {
   services: AdminServiceListItem[];
   total: number;
+};
+
+export type AdminServiceActionResponse = {
+  message: string;
+  service: AdminServiceListItem;
 };
 
 @Injectable()
@@ -90,6 +99,30 @@ export class AdminServicesService {
     };
   }
 
+  async deactivateService(
+    user: RequestUser,
+    id: number,
+  ): Promise<AdminServiceActionResponse> {
+    const service = await this.updateServiceActiveStatus(user, id, false);
+
+    return {
+      message: 'Service deactivated successfully',
+      service,
+    };
+  }
+
+  async reactivateService(
+    user: RequestUser,
+    id: number,
+  ): Promise<AdminServiceActionResponse> {
+    const service = await this.updateServiceActiveStatus(user, id, true);
+
+    return {
+      message: 'Service reactivated successfully',
+      service,
+    };
+  }
+
   private async assertAdminUser(user: RequestUser): Promise<void> {
     if (user.role !== 'admin' && user.role !== 'platform_admin') {
       throw new ForbiddenException('Only admins can access services');
@@ -112,6 +145,37 @@ export class AdminServicesService {
     ) {
       throw new ForbiddenException('Only admins can access services');
     }
+  }
+
+  private async updateServiceActiveStatus(
+    user: RequestUser,
+    id: number,
+    isActive: boolean,
+  ): Promise<AdminServiceListItem> {
+    await this.assertAdminUser(user);
+
+    const service = await this.servicesRepository.findOne({
+      where: { id },
+      relations: {
+        category: true,
+        provider: true,
+        images: true,
+      },
+      order: {
+        images: {
+          sortOrder: 'ASC',
+        },
+      },
+    });
+
+    if (!service) {
+      throw new NotFoundException('Service not found');
+    }
+
+    service.isActive = isActive;
+    const savedService = await this.servicesRepository.save(service);
+
+    return this.mapServiceListItem(savedService);
   }
 
   private mapServiceListItem(service: Service): AdminServiceListItem {

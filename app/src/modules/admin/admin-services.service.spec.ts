@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { User } from '../shared/entities';
 import { AdminServicesService } from './admin-services.service';
 
@@ -13,6 +13,7 @@ type QueryBuilderMock = {
 type MockRepository = {
   createQueryBuilder: jest.Mock;
   findOne: jest.Mock;
+  save: jest.Mock;
 };
 
 const createQueryBuilderMock = (): QueryBuilderMock => {
@@ -43,6 +44,7 @@ describe('AdminServicesService', () => {
     servicesRepository = {
       createQueryBuilder: jest.fn().mockReturnValue(queryBuilder),
       findOne: jest.fn(),
+      save: jest.fn(),
     };
     usersRepository = {
       createQueryBuilder: jest.fn(),
@@ -168,5 +170,105 @@ describe('AdminServicesService', () => {
     ).rejects.toBeInstanceOf(ForbiddenException);
 
     expect(servicesRepository.createQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('deactivates a service', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 1,
+      isActive: true,
+      role: { name: 'admin' },
+    } as User);
+
+    const serviceEntity = {
+      id: 12,
+      tenantId: 3,
+      title: 'Pipe Repair',
+      description: null,
+      basePrice: '99.99',
+      isActive: true,
+      category: {
+        id: 1,
+        name: 'Plumbing',
+      },
+      provider: {
+        id: 5,
+        displayName: 'QuickFix Plumbing',
+        isVerified: true,
+      },
+      images: [],
+      createdAt: new Date('2026-04-20T08:00:00.000Z'),
+      updatedAt: new Date('2026-04-21T08:00:00.000Z'),
+    };
+
+    servicesRepository.findOne.mockResolvedValue(serviceEntity);
+    servicesRepository.save.mockResolvedValue(serviceEntity);
+
+    await expect(
+      service.deactivateService({ id: 1, role: 'admin', tenantId: null }, 12),
+    ).resolves.toMatchObject({
+      message: 'Service deactivated successfully',
+      service: {
+        id: 12,
+        isActive: false,
+        status: 'inactive',
+      },
+    });
+
+    expect(servicesRepository.save).toHaveBeenCalledWith({
+      ...serviceEntity,
+      isActive: false,
+    });
+  });
+
+  it('reactivates a service', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 1,
+      isActive: true,
+      role: { name: 'platform_admin' },
+    } as User);
+
+    const serviceEntity = {
+      id: 12,
+      tenantId: 3,
+      title: 'Pipe Repair',
+      description: null,
+      basePrice: '99.99',
+      isActive: false,
+      category: null,
+      provider: null,
+      images: [],
+      createdAt: new Date('2026-04-20T08:00:00.000Z'),
+      updatedAt: new Date('2026-04-21T08:00:00.000Z'),
+    };
+
+    servicesRepository.findOne.mockResolvedValue(serviceEntity);
+    servicesRepository.save.mockResolvedValue(serviceEntity);
+
+    await expect(
+      service.reactivateService(
+        { id: 1, role: 'platform_admin', tenantId: null },
+        12,
+      ),
+    ).resolves.toMatchObject({
+      message: 'Service reactivated successfully',
+      service: {
+        id: 12,
+        isActive: true,
+        status: 'active',
+      },
+    });
+  });
+
+  it('returns not found when service action target does not exist', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 1,
+      isActive: true,
+      role: { name: 'admin' },
+    } as User);
+    servicesRepository.findOne.mockResolvedValue(null);
+
+    await expect(
+      service.deactivateService({ id: 1, role: 'admin', tenantId: null }, 404),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
