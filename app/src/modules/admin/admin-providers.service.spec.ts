@@ -160,10 +160,7 @@ describe('AdminProvidersService', () => {
 
   it('rejects non-admin users', async () => {
     await expect(
-      service.getProviders(
-        { id: 2, role: 'provider', tenantId: 7 },
-        {},
-      ),
+      service.getProviders({ id: 2, role: 'provider', tenantId: 7 }, {}),
     ).rejects.toBeInstanceOf(ForbiddenException);
 
     expect(providersRepository.createQueryBuilder).not.toHaveBeenCalled();

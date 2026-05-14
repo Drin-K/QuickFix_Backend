@@ -176,16 +176,18 @@ describe('ReviewsService', () => {
   it('rejects review creation for non-client users', async () => {
     const user = { id: 9, role: 'provider', tenantId: 2 } as const;
 
-    await expect(service.create({ bookingId: 15, rating: 5 }, user, 2)).rejects
-      .toBeInstanceOf(ForbiddenException);
+    await expect(
+      service.create({ bookingId: 15, rating: 5 }, user, 2),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('rejects review creation for a booking that does not belong to the client', async () => {
     const user = { id: 9, role: 'client', tenantId: 2 } as const;
     bookingsRepository.findOne.mockResolvedValue(null);
 
-    await expect(service.create({ bookingId: 15, rating: 5 }, user, 2)).rejects
-      .toBeInstanceOf(NotFoundException);
+    await expect(
+      service.create({ bookingId: 15, rating: 5 }, user, 2),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('rejects review creation when the booking is not completed', async () => {
@@ -200,8 +202,9 @@ describe('ReviewsService', () => {
       review: null,
     });
 
-    await expect(service.create({ bookingId: 15, rating: 5 }, user, 2)).rejects
-      .toBeInstanceOf(BadRequestException);
+    await expect(
+      service.create({ bookingId: 15, rating: 5 }, user, 2),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('rejects review creation when a review already exists for the booking', async () => {
@@ -216,8 +219,9 @@ describe('ReviewsService', () => {
       review: { id: 4 },
     });
 
-    await expect(service.create({ bookingId: 15, rating: 5 }, user, 2)).rejects
-      .toBeInstanceOf(BadRequestException);
+    await expect(
+      service.create({ bookingId: 15, rating: 5 }, user, 2),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('returns provider reviews with summary information', async () => {

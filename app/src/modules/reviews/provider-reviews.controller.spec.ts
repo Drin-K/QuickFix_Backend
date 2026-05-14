@@ -23,7 +23,9 @@ describe('ProviderReviewsController', () => {
       ],
     }).compile();
 
-    controller = module.get<ProviderReviewsController>(ProviderReviewsController);
+    controller = module.get<ProviderReviewsController>(
+      ProviderReviewsController,
+    );
   });
 
   it('returns public provider reviews', async () => {
