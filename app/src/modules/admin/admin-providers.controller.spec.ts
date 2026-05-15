@@ -59,12 +59,17 @@ describe('AdminProvidersController', () => {
       total: 0,
     });
 
-    await expect(controller.getProviders(user, query as never)).resolves.toEqual({
+    await expect(
+      controller.getProviders(user, query as never),
+    ).resolves.toEqual({
       providers: [],
       total: 0,
     });
 
-    expect(adminProvidersService.getProviders).toHaveBeenCalledWith(user, query);
+    expect(adminProvidersService.getProviders).toHaveBeenCalledWith(
+      user,
+      query,
+    );
   });
 
   it('returns provider details for admins', async () => {
@@ -107,7 +112,10 @@ describe('AdminProvidersController', () => {
       },
     });
 
-    expect(adminProvidersService.getProviderDetails).toHaveBeenCalledWith(user, 10);
+    expect(adminProvidersService.getProviderDetails).toHaveBeenCalledWith(
+      user,
+      10,
+    );
   });
 
   it('verifies providers for admins', async () => {
@@ -137,6 +145,9 @@ describe('AdminProvidersController', () => {
       provider: { id: 10, isVerified: false },
     });
 
-    expect(adminProvidersService.unverifyProvider).toHaveBeenCalledWith(user, 10);
+    expect(adminProvidersService.unverifyProvider).toHaveBeenCalledWith(
+      user,
+      10,
+    );
   });
 });

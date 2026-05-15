@@ -204,7 +204,8 @@ export class AdminProvidersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Verify a provider for admin',
-    description: 'Marks the selected provider as verified for admin moderation.',
+    description:
+      'Marks the selected provider as verified for admin moderation.',
   })
   @ApiParam({
     name: 'id',

@@ -302,10 +302,7 @@ describe('AdminProvidersService', () => {
     ]);
 
     await expect(
-      service.getProviderDetails(
-        { id: 1, role: 'admin', tenantId: null },
-        10,
-      ),
+      service.getProviderDetails({ id: 1, role: 'admin', tenantId: null }, 10),
     ).resolves.toMatchObject({
       provider: {
         id: 10,
@@ -435,12 +432,18 @@ describe('AdminProvidersService', () => {
       },
     });
 
-    expect(queryBuilder.where).toHaveBeenCalledWith('service.providerId = :providerId', {
-      providerId: 10,
-    });
-    expect(queryBuilder.andWhere).toHaveBeenCalledWith('service.tenantId = :tenantId', {
-      tenantId: 4,
-    });
+    expect(queryBuilder.where).toHaveBeenCalledWith(
+      'service.providerId = :providerId',
+      {
+        providerId: 10,
+      },
+    );
+    expect(queryBuilder.andWhere).toHaveBeenCalledWith(
+      'service.tenantId = :tenantId',
+      {
+        tenantId: 4,
+      },
+    );
   });
 
   it('falls back to tenant or owner identifiers when the direct provider id is not found', async () => {
@@ -489,10 +492,7 @@ describe('AdminProvidersService', () => {
     queryBuilder.getMany.mockResolvedValue([]);
 
     await expect(
-      service.getProviderDetails(
-        { id: 1, role: 'admin', tenantId: null },
-        4,
-      ),
+      service.getProviderDetails({ id: 1, role: 'admin', tenantId: null }, 4),
     ).resolves.toMatchObject({
       provider: {
         id: 10,
@@ -758,37 +758,37 @@ describe('AdminProvidersService', () => {
 
     providersRepository.findOne
       .mockResolvedValueOnce({
-      id: 10,
-      tenantId: 4,
-      ownerUserId: 11,
-      type: 'company',
-      displayName: 'QuickFix Plumbing',
-      description: 'Trusted plumbing help for households and offices.',
-      city: {
-        id: 3,
-        name: 'Prishtina',
-      },
-      address: 'Main street 12',
-      isVerified: false,
-      averageRating: '4.90',
-      createdAt: new Date('2026-04-15T09:00:00.000Z'),
-      updatedAt: new Date('2026-05-13T16:00:00.000Z'),
-      ownerUser: null,
-      tenant: null,
-      companyDetails: null,
-      individualDetails: null,
-      documents: [
-        {
-          id: 22,
-          tenantId: 4,
-          providerId: 10,
-          documentType: 'business_license',
-          fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
-          isVerified: false,
-          createdAt: new Date('2026-04-30T12:00:00.000Z'),
+        id: 10,
+        tenantId: 4,
+        ownerUserId: 11,
+        type: 'company',
+        displayName: 'QuickFix Plumbing',
+        description: 'Trusted plumbing help for households and offices.',
+        city: {
+          id: 3,
+          name: 'Prishtina',
         },
-      ],
-    } as Provider)
+        address: 'Main street 12',
+        isVerified: false,
+        averageRating: '4.90',
+        createdAt: new Date('2026-04-15T09:00:00.000Z'),
+        updatedAt: new Date('2026-05-13T16:00:00.000Z'),
+        ownerUser: null,
+        tenant: null,
+        companyDetails: null,
+        individualDetails: null,
+        documents: [
+          {
+            id: 22,
+            tenantId: 4,
+            providerId: 10,
+            documentType: 'business_license',
+            fileUrl: 'https://cdn.example.com/provider-documents/license.pdf',
+            isVerified: false,
+            createdAt: new Date('2026-04-30T12:00:00.000Z'),
+          },
+        ],
+      } as Provider)
       .mockResolvedValueOnce({
         id: 10,
         tenantId: 4,

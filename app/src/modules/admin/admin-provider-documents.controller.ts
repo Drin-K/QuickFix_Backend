@@ -58,7 +58,8 @@ export class AdminProviderDocumentsController {
     description: 'Authentication token is missing, invalid, or expired.',
   })
   @ApiForbiddenResponse({
-    description: 'Only admins can access provider document verification actions.',
+    description:
+      'Only admins can access provider document verification actions.',
   })
   @ApiNotFoundResponse({
     description: 'Provider document was not found.',
@@ -100,7 +101,8 @@ export class AdminProviderDocumentsController {
     description: 'Authentication token is missing, invalid, or expired.',
   })
   @ApiForbiddenResponse({
-    description: 'Only admins can access provider document verification actions.',
+    description:
+      'Only admins can access provider document verification actions.',
   })
   @ApiNotFoundResponse({
     description: 'Provider document was not found.',

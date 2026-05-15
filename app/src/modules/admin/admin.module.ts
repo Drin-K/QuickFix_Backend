@@ -8,6 +8,8 @@ import {
   Service,
   User,
 } from '../shared/entities';
+import { AdminClientsController } from './admin-clients.controller';
+import { AdminClientsService } from './admin-clients.service';
 import { AdminDashboardController } from './admin-dashboard.controller';
 import { AdminDashboardService } from './admin-dashboard.service';
 import { AdminProviderDocumentsController } from './admin-provider-documents.controller';
@@ -28,12 +30,14 @@ import { AdminServicesService } from './admin-services.service';
     ]),
   ],
   controllers: [
+    AdminClientsController,
     AdminDashboardController,
     AdminProviderDocumentsController,
     AdminProvidersController,
     AdminServicesController,
   ],
   providers: [
+    AdminClientsService,
     AdminDashboardService,
     AdminProvidersService,
     AdminServicesService,
