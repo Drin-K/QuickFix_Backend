@@ -322,7 +322,9 @@ export class AdminProvidersService {
       .getMany();
 
     const documents = this.sortDocuments(provider.documents ?? []);
-    const verifiedDocuments = documents.filter((document) => document.isVerified);
+    const verifiedDocuments = documents.filter(
+      (document) => document.isVerified,
+    );
     const companyDetails =
       provider.type === 'company' && provider.companyDetails
         ? this.mapCompanyDetails(provider.companyDetails)
@@ -331,9 +333,9 @@ export class AdminProvidersService {
       provider.type === 'individual' && provider.individualDetails
         ? this.mapIndividualDetails(provider.individualDetails)
         : null;
-    const recentServices = services.slice(0, 5).map((service) =>
-      this.mapServiceSummaryItem(service),
-    );
+    const recentServices = services
+      .slice(0, 5)
+      .map((service) => this.mapServiceSummaryItem(service));
     const servicesSummary = {
       totalCount: services.length,
       totalServices: services.length,
@@ -369,7 +371,11 @@ export class AdminProvidersService {
     };
 
     return {
-      provider: this.mapProviderDetails(provider, documents.length, services.length),
+      provider: this.mapProviderDetails(
+        provider,
+        documents.length,
+        services.length,
+      ),
       details: {
         type: provider.type,
         companyDetails,
@@ -495,7 +501,9 @@ export class AdminProvidersService {
     }
 
     if (providerDocument?.provider?.id) {
-      return this.findProviderWithDetailsRelations(providerDocument.provider.id);
+      return this.findProviderWithDetailsRelations(
+        providerDocument.provider.id,
+      );
     }
 
     return null;
@@ -526,7 +534,9 @@ export class AdminProvidersService {
     return provider.documents[0] ?? null;
   }
 
-  private async findProviderWithDetailsRelations(id: number): Promise<Provider | null> {
+  private async findProviderWithDetailsRelations(
+    id: number,
+  ): Promise<Provider | null> {
     const relations = {
       ownerUser: true,
       tenant: true,

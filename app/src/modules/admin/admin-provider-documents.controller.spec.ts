@@ -69,7 +69,9 @@ describe('AdminProviderDocumentsController', () => {
       provider: { id: 10, isVerified: true },
     });
 
-    await expect(controller.unverifyProviderDocument(user, 22)).resolves.toEqual({
+    await expect(
+      controller.unverifyProviderDocument(user, 22),
+    ).resolves.toEqual({
       message: 'Document unverified successfully.',
       provider: { id: 10, isVerified: true },
     });
